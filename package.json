@@ -9,7 +9,6 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "postinstall": "npm run build",
     "serve": "node ./dist/index.js",
     "build": "tsc",
     "start": "tsc-watch --onSuccess \"node ./dist/index.js\" --onFailure \"echo Beep! Compilation Failed\" --compiler typescript/bin/tsc",
