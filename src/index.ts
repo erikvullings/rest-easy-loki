@@ -1,5 +1,6 @@
 import Koa from 'koa';
 import bodyParser from 'koa-body';
+import serve from 'koa-static';
 
 import { config } from './config';
 import { logger } from './logging';
@@ -9,6 +10,7 @@ const app = new Koa();
 
 app.use(bodyParser());
 app.use(logger);
+app.use(serve('./public'));
 app.use(routes);
 
 app.listen(config.port);

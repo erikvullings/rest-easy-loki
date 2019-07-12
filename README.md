@@ -12,6 +12,7 @@ A simple REST interface for the in-memory database, `lokijs`, featuring:
 - Delete the item with `$loki` ID: Make a DELETE request to [https://localhost:3000/COLLECTION_NAME/ID](https://localhost:3000/COLLECTION_NAME/1).
 - Update the item by ID. PUT the item as an `application/json` body to [https://localhost:3000/COLLECTION_NAME/ID](https://localhost:3000/COLLECTION_NAME/ID). Alternatively, change the original item (from the GET, so including `$loki` ID) and PUT it back to [https://localhost:3000/COLLECTION_NAME](https://localhost:3000/COLLECTION_NAME)
 - Automatic creation of new collections: when you post a message to a non-existing collection, it is automatically created.
+- You can use the `public` folder for sharing static files.
 
 ## Installation
 
