@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/erikvullings/loki-rest.git"
+    "url": "git+https://github.com/erikvullings/rest-easy-loki.git"
   },
   "keywords": [
     "REST",
@@ -30,9 +30,9 @@
   "author": "Erik Vullings <erik.vullings@gmail.com> (http://www.tno.nl)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/erikvullings/loki-rest/issues"
+    "url": "https://github.com/erikvullings/rest-easy-loki/issues"
   },
-  "homepage": "https://github.com/erikvullings/loki-rest#readme",
+  "homepage": "https://github.com/erikvullings/rest-easy-loki#readme",
   "dependencies": {
     "koa": "^2.7.0",
     "koa-body": "^4.1.0",
