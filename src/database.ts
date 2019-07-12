@@ -38,6 +38,7 @@ const db = new loki('rest_easy_loki.db', {
 process.on('SIGINT', () => {
   console.log('flushing database...');
   db.close();
+  process.exit(0);
 });
 
 export const post = (collectionName: string, item: unknown) => {
