@@ -9,7 +9,7 @@
   },
   "scripts": {
     "clean": "rimraf ./dist",
-    "serve": "node ./dist/index.js",
+    "serve": "node ./dist/serve.js",
     "build": "tsc",
     "start": "tsc-watch --onSuccess \"node ./dist/index.js\" --onFailure \"echo Beep! Compilation Failed\" --compiler typescript/bin/tsc",
     "dry-run": "npm publish --dry-run",

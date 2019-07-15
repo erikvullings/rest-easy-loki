@@ -1,18 +1,37 @@
 import Koa from 'koa';
 import bodyParser from 'koa-body';
 import serve from 'koa-static';
-
-import { config } from './config';
+import {
+  all,
+  collections,
+  createCollection,
+  del,
+  findOne,
+  get,
+  post,
+  startDatabase,
+  update,
+  updateItem,
+} from './database';
 import { logger } from './logging';
 import { routes } from './routes';
 
-const app = new Koa();
+export const db = {
+  all,
+  createCollection,
+  collections,
+  del,
+  get,
+  findOne,
+  post,
+  startDatabase,
+  update,
+  updateItem,
+};
 
-app.use(bodyParser());
-app.use(logger);
-app.use(serve('./public'));
-app.use(routes);
+export const api: Koa = new Koa();
 
-app.listen(config.port);
-
-console.log(`Server running on port ${config.port}.`);
+api.use(bodyParser());
+api.use(logger);
+api.use(serve('./public'));
+api.use(routes);
