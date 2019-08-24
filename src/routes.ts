@@ -1,10 +1,8 @@
-import Application from 'koa';
-import compose from 'koa-compose';
 import Router from 'koa-router';
 import { all, collections, del, get, post, update, updateItem } from './database';
 import { paginationFilter, propertyMap } from './utils';
 
-const router = new Router();
+export const router = new Router();
 
 router.get('/collections', async ctx => {
   ctx.status = 201;
@@ -14,7 +12,7 @@ router.get('/collections', async ctx => {
 /**
  * Request the whole collection but only returns a subset of all properties
  * - Specify `props` containing a comma separted array of top-level properties.
- * - Optionally, specify from and to as query params for pagination, e.g. ?from=0&to=5
+ * - Optionally, specify `from` and `to` as query params for pagination, e.g. ?from=0&to=5
  */
 router.get('/:collection/view', async ctx => {
   const { collection } = ctx.params;
@@ -45,7 +43,7 @@ router.post('/:collection', async ctx => {
   const { collection } = ctx.params;
   const item = ctx.request.body;
   console.log(item);
-  ctx.body = await post(collection, item);
+  ctx.body = post(collection, item);
 });
 
 router.put('/:collection/:id', async ctx => {
@@ -65,6 +63,6 @@ router.delete('/:collection/:id', async ctx => {
   ctx.body = del(collection, +id);
 });
 
-export const routes: compose.Middleware<
-  Application.ParameterizedContext<any, Router.IRouterParamContext<any, {}>>
-> = router.routes();
+// export const routes: compose.Middleware<
+//   Application.ParameterizedContext<any, Router.IRouterParamContext<any, {}>>
+// > = router.routes();

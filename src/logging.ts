@@ -1,5 +1,4 @@
 import * as Koa from 'koa';
-import { config } from './config';
 
 interface ILogData {
   method: string;
@@ -15,8 +14,12 @@ interface ILogData {
   responseTime: number;
 }
 
+const state = { prettyLog: false };
+
+export const setLoggingOptions = (verbose: boolean) => state.prettyLog = verbose;
+
 function outputLog(data: Partial<ILogData>, thrownError: any) {
-  if (config.prettyLog) {
+  if (state.prettyLog) {
     console.log(`${data.statusCode} ${data.method} ${data.url} - ${data.responseTime}ms`);
     if (thrownError) {
       console.error(thrownError);

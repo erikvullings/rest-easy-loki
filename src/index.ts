@@ -1,6 +1,4 @@
-import Koa from 'koa';
-import bodyParser from 'koa-body';
-import serve from 'koa-static';
+export { createApi } from './api';
 import {
   all,
   collections,
@@ -13,8 +11,6 @@ import {
   update,
   updateItem,
 } from './database';
-import { logger } from './logging';
-import { routes } from './routes';
 
 export const db = {
   all,
@@ -28,10 +24,3 @@ export const db = {
   update,
   updateItem,
 };
-
-export const api: Koa = new Koa();
-
-api.use(bodyParser());
-api.use(logger);
-api.use(serve('./public'));
-api.use(routes);
