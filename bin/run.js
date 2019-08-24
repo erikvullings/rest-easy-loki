@@ -1,4 +1,4 @@
 #! /usr/bin/env node
 
-var server = require('../dist/serve.js');
-server
+var { startService } = require('../dist/serve.js');
+startService({ port: 3000, cors: true });

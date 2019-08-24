@@ -92,5 +92,4 @@ if (options.help) {
   process.exit(0);
 }
 
-// createApi(options);
 startService(options);
