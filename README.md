@@ -34,12 +34,13 @@ npm run serve
 To embed it in your own project, do something like the following:
 
 ```ts
-import { api, db } from 'rest-easy-loki';
+import { createApi, db } from 'rest-easy-loki';
 
 export const collectionName = 'documents';
 
 export const startService = (done: () => void) => {
   db.startDatabase('my_database_file.json', () => {
+    const api = createApi({ cors: true });
     api.listen(options.port).on('listening', () => {
       const exists = db.collections().reduce((acc, cur) => acc || cur.name === collectionName, false);
       if (!exists) {
