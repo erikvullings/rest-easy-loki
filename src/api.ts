@@ -13,21 +13,21 @@ const state = {
   cors: false,
 } as ICommandOptions;
 
-export const createApi = (options: Partial<ICommandOptions>): Koa => {
-  if (options.verbose) {
-    state.verbose = options.verbose;
+export const createApi = (config: Partial<ICommandOptions>): Koa => {
+  if (config.verbose) {
+    state.verbose = config.verbose;
     setLoggingOptions(state.verbose);
   }
-  if (options.port) {
-    state.port = options.port;
+  if (config.port) {
+    state.port = config.port;
   }
   const api: Koa = new Koa();
 
-  if (options.cors) {
+  if (config.cors) {
     console.log('Enabling CORS.');
     api.use(cors());
   }
-  api.use(bodyParser({formLimit: '25mb', jsonLimit: '25mb' }));
+  api.use(bodyParser({formLimit: config.sizeLimit, jsonLimit: config.sizeLimit }));
   api.use(logger);
   api.use(serve('./public'));
   api.use(router.routes());

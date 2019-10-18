@@ -2,6 +2,7 @@ import commandLineArgs from 'command-line-args';
 import { OptionDefinition } from 'command-line-args';
 import { ICommandOptions } from './models/command-options';
 import { startService } from './serve';
+import { config } from './config';
 
 // tslint:disable-next-line: no-var-requires
 const npm = require('../package.json') as {
@@ -37,13 +38,13 @@ export class CommandLineInterface {
       alias: 'c',
       type: Boolean,
       typeLabel: 'Boolean',
-      defaultValue: true,
+      defaultValue: config.cors,
       description: 'Enable CORS (default true)',
     },
     {
       name: 'verbose',
       alias: 'v',
-      defaultValue: process.env.NODE_ENV === 'development',
+      defaultValue: config.verbose,
       type: Boolean,
       typeLabel: 'Boolean',
       description: 'Enable verbose output, default true when $NODE_ENV = \'development\', otherwise false.',
@@ -51,10 +52,26 @@ export class CommandLineInterface {
     {
       name: 'port',
       alias: 'p',
-      defaultValue: process.env.LOKI_PORT || 3000,
+      defaultValue: config.port,
       type: Boolean,
       typeLabel: 'Boolean',
       description: 'Port to use, default taken from environment settings, $LOKI_PORT, otherwise 3000',
+    },
+    {
+      name: 'sizeLimit',
+      alias: 's',
+      defaultValue: config.sizeLimit,
+      type: String,
+      typeLabel: 'String',
+      description: 'Message size limit for body parser, $LOKI_SIZE_LIMIT, default 25mb',
+    },
+    {
+      name: 'db',
+      alias: 'd',
+      defaultValue: config.db,
+      type: String,
+      typeLabel: 'String',
+      description: 'Name of the database taken from environment settings, $LOKI_DB, otherwise `rest_easy_loki.db`.',
     },
   ];
 

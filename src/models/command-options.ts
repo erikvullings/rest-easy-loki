@@ -7,4 +7,8 @@ export interface ICommandOptions {
   port: number;
   /** Enable CORS */
   cors: boolean;
+  /** Database name */
+  db: string;
+  /** Message size limit for URL-encoded or JSON messages. Used in bodyparser, e.g. 1mb. Default 25mb */
+  sizeLimit: string;
 }
