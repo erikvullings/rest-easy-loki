@@ -8,16 +8,16 @@ import { ICommandOptions } from './models/command-options';
 import { router } from './routes';
 
 const state = {
-  verbose: false,
+  pretty: false,
   port: 3000,
   cors: false,
 } as ICommandOptions;
 
 export const createApi = (config: Partial<ICommandOptions>): Koa => {
-  if (config.verbose) {
-    state.verbose = config.verbose;
-    setLoggingOptions(state.verbose);
+  if (config.pretty) {
+    state.pretty = config.pretty;
   }
+  setLoggingOptions(state.pretty);
   if (config.port) {
     state.port = config.port;
   }

@@ -42,12 +42,12 @@ export class CommandLineInterface {
       description: 'Enable CORS (default true)',
     },
     {
-      name: 'verbose',
+      name: 'pretty',
       alias: 'v',
-      defaultValue: config.verbose,
+      defaultValue: config.pretty,
       type: Boolean,
       typeLabel: 'Boolean',
-      description: 'Enable verbose output, default true when $NODE_ENV = \'development\', otherwise false.',
+      description: 'Enable pretty output, default taken from environment settings, $LOKI_PRETTY, default true.',
     },
     {
       name: 'port',

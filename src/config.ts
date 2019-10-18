@@ -5,7 +5,7 @@ dotenv.config();
 
 export const config = {
   help: false,
-  verbose: process.env.NODE_ENV === 'development',
+  pretty: process.env.LOKI_PRETTY ? process.env.LOKI_PRETTY : true,
   port: process.env.LOKI_PORT || 3000,
   cors: process.env.LOKI_CORS || true,
   db: process.env.LOKI_DB || 'rest_easy_loki.db',

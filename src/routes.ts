@@ -42,7 +42,6 @@ router.get('/:collection', async ctx => {
 router.post('/:collection', async ctx => {
   const { collection } = ctx.params;
   const item = ctx.request.body;
-  console.log(item);
   ctx.body = post(collection, item);
 });
 
