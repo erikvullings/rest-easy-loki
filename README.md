@@ -15,6 +15,7 @@ A simple REST interface for the in-memory database, `lokijs`, featuring:
 - You can filter the properties that get returned (simple GraphQL-like filter) using a collection's 'view', e.g. [http://localhost:3000/COLLECTION_NAME/view?props=title,$loki,file](http://localhost:3000/COLLECTION_NAME/view?props=title,$loki,file).
 - You can use the `public` folder for sharing static files.
 - You can require it in your own project.
+- Reads `.env` file for specifying the database name, port, CORS and message size limits.
 
 ## Installation
 
