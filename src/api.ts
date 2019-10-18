@@ -27,7 +27,7 @@ export const createApi = (options: Partial<ICommandOptions>): Koa => {
     console.log('Enabling CORS.');
     api.use(cors());
   }
-  api.use(bodyParser());
+  api.use(bodyParser({formLimit: '25mb', jsonLimit: '25mb' }));
   api.use(logger);
   api.use(serve('./public'));
   api.use(router.routes());
