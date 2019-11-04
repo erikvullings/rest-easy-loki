@@ -2,6 +2,11 @@ import * as Koa from 'koa';
 
 const getApiKeys = () => {
   return {
+    whitelist: process.env.LOKI_AUTHZ_WHITELIST
+      ? process.env.LOKI_AUTHZ_WHITELIST.toUpperCase()
+          .split(',')
+          .map(x => x.trim())
+      : [],
     create: process.env.LOKI_AUTHZ_CREATE
       ? process.env.LOKI_AUTHZ_CREATE.toUpperCase()
           .split(',')
@@ -23,9 +28,15 @@ const getApiKeys = () => {
           .map(x => x.trim())
       : [],
   } as {
+    /** Domain names that are white listed */
+    whitelist: string[];
+    /** API keys that allow CREATE operations */
     create: string[];
+    /** API keys that allow READ operations */
     read: string[];
+    /** API keys that allow UPDATE operations */
     update: string[];
+    /** API keys that allow DELETE operations */
     delete: string[];
   };
 };
@@ -40,8 +51,14 @@ const retreiveApiKey = (ctx: Koa.Context): string | undefined => {
 
 /** Policy decision point, decides whether the requested action is allowed. */
 const pdp = (ctx: Koa.Context): boolean => {
-  console.log(ctx.host);
-  console.log(ctx.hostname);
+  // Whitelisted
+  if (apiKeys.whitelist.length > 0) {
+    const hostname = ctx.hostname ? ctx.hostname.toUpperCase() : undefined;
+    if (hostname && apiKeys.whitelist.indexOf(hostname) >= 0) {
+      return true;
+    }
+  }
+
   const apiKey = retreiveApiKey(ctx);
   const dp = (keys: string[]) => {
     if (keys.length === 0) {
