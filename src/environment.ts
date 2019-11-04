@@ -1,4 +1,5 @@
-const regex = /^LOKI_/;
+const passThrough = /^LOKI_/;
+const block = /^LOKI_AUTHZ_/;
 
 /** Convert environment variables to certain primitive types */
 const converter = (v: any): undefined | string | boolean | number | Array<string | number | boolean> => {
@@ -35,7 +36,7 @@ export const environment = () => {
   const { env } = process;
   return Object.keys(env).reduce(
     (acc, cur) => {
-      if (regex.test(cur)) {
+      if (!block.test(cur) && passThrough.test(cur)) {
         acc[cur] = converter(env[cur]);
       }
       return acc;

@@ -13,8 +13,9 @@ A simple REST interface for the in-memory database, `lokijs`, featuring:
 - Update the item by ID. PUT the item as an `application/json` body to [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/ID). Alternatively, change the original item (from the GET, so including `$loki` ID) and PUT it back to [https://localhost:3000/api/COLLECTION_NAME](https://localhost:3000/api/COLLECTION_NAME)
 - Automatic creation of new collections: when you post a message to a non-existing collection, it is automatically created.
 - You can filter the properties that get returned (simple GraphQL-like filter) using a collection's 'view', e.g. [http://localhost:3000/api/COLLECTION_NAME/view?props=title,$loki,file](http://localhost:3000/api/COLLECTION_NAME/view?props=title,$loki,file).
-- You can use the `public` folder for sharing static files.
-- The [http://localhost:3000/api/env](http://localhost:3000/api/env) serves all environment variables that start with `LOKI_` (so you don't accidentally share secrets). Since all key-value pairs are strings, a type conversion to boolean, number and arrays (using the , as separator) is performed.
+- You can use the `public` folder for sharing static files or your own web application.
+- The [http://localhost:3000/api/env](http://localhost:3000/api/env) serves all environment variables that start with `LOKI_` (except the `LOKI_AUTHZ_`, so you don't accidentally share secrets). Since all key-value pairs are strings, a type conversion to boolean, number and arrays (using the , as separator) is performed.
+- Simple authorization can be enabled by specifying environment variables: `LOKI_AUTHZ_CREATE`, `LOKI_AUTHZ_READ`, `LOKI_AUTHZ_UPDATE`, `LOKI_AUTHZ_DELETE`, where the value is a comma-separated list of API keys. If no `authz` is set, all CRUD actions are allowed. Otherwise, your query needs to set the `x-api-key` header.
 - You can require it in your own project.
 - Reads `.env` file for specifying the database name, port, CORS and message size limits.
 

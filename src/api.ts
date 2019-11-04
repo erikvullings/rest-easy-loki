@@ -3,6 +3,7 @@ const cors = require('@koa/cors');
 import Koa from 'koa';
 import bodyParser from 'koa-body';
 import serve from 'koa-static';
+import { pep } from './authorization';
 import { logger, setLoggingOptions } from './logging';
 import { ICommandOptions } from './models/command-options';
 import { router } from './routes';
@@ -30,6 +31,7 @@ export const createApi = (config: Partial<ICommandOptions>): Koa => {
   api.use(bodyParser({formLimit: config.sizeLimit, jsonLimit: config.sizeLimit }));
   api.use(logger);
   api.use(serve('./public'));
+  api.use(pep);
   api.use(router.routes());
   api.use(router.allowedMethods());
   return api;
