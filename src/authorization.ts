@@ -53,7 +53,9 @@ const retreiveApiKey = (ctx: Koa.Context): string | undefined => {
 const pdp = (ctx: Koa.Context): boolean => {
   // Whitelisted
   if (apiKeys.whitelist.length > 0) {
+    // console.table(apiKeys);
     const hostname = ctx.hostname ? ctx.hostname.toUpperCase() : undefined;
+    // console.table(hostname);
     if (hostname && apiKeys.whitelist.indexOf(hostname) >= 0) {
       return true;
     }
@@ -89,10 +91,8 @@ const pdp = (ctx: Koa.Context): boolean => {
 
 /** Simple Policy Enforcement Point */
 export const pep = async (ctx: Koa.Context, next: () => Promise<any>) => {
-  if (!apiKeys) {
+  if (pdp(ctx)) {
     // Use await next. See here: https://github.com/ZijianHe/koa-router/issues/358
-    await next();
-  } else if (pdp(ctx)) {
     await next();
   }
 };

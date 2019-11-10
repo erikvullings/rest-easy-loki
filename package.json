@@ -11,6 +11,7 @@
     "clean": "rimraf ./dist",
     "serve": "node ./dist/serve.js",
     "build": "tsc",
+    "watch": "tsc -w",
     "start": "tsc-watch --onSuccess \"node ./dist/cli.js\" --onFailure \"echo Beep! Compilation Failed\" --compiler typescript/bin/tsc",
     "dry-run": "npm publish --dry-run",
     "patch-release": "npm run clean && npm run build && npm version patch --force -m \"Patch release\" && npm publish && git push --follow-tags",
