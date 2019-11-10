@@ -88,11 +88,11 @@ const pdp = (ctx: Koa.Context): boolean => {
 };
 
 /** Simple Policy Enforcement Point */
-export const pep = (ctx: Koa.Context, next: () => Promise<any>) => {
+export const pep = async (ctx: Koa.Context, next: () => Promise<any>) => {
   if (!apiKeys) {
-    next();
-  }
-  if (pdp(ctx)) {
-    next();
+    // Use await next. See here: https://github.com/ZijianHe/koa-router/issues/358
+    await next();
+  } else if (pdp(ctx)) {
+    await next();
   }
 };
