@@ -25,23 +25,24 @@ npm run serve
 To embed it in your own project, do something like the following:
 
 ```ts
+import * as Koa from 'koa'; // You only need to include @types/koa in your devDependencies, not Koa itself.
 import { createApi, db } from 'rest-easy-loki';
 
 export const collectionName = 'documents';
 
-export const startService = (done: () => void) => {
-  db.startDatabase('my_database_file.json', () => {
-    const api = createApi({ cors: true });
-    api.listen(options.port).on('listening', () => {
-      const exists = db.collections().reduce((acc, cur) => acc || cur.name === collectionName, false);
-      if (!exists) {
-        db.createCollection(collectionName, ['file']);
-      }
-      console.info(`Server running on port ${options.port}.`);
-      done();
-    });
+const port = process.env.LOKI_PORT || '3000';
+const dbName = process.env.LOKI_DB;
+const cors = (process.env.LOKI_CORS || 'true') === 'true';
+const sizeLimit = process.env.LOKI_SIZE_LIMIT || '25mb';
+
+export const startService = () => {
+  db.startDatabase(dbName, () => {
+    const api = createApi({ cors, sizeLimit }) as Koa;
+    api.listen(port);
+    console.log(`Server running on port ${port}.`);
   });
 };
+startService();
 ```
 
 ### Configuration
