@@ -35,26 +35,26 @@
   "homepage": "https://github.com/erikvullings/rest-easy-loki#readme",
   "dependencies": {
     "command-line-args": "^5.1.1",
-    "command-line-usage": "^6.0.2",
+    "command-line-usage": "^6.1.0",
     "dotenv": "^8.2.0",
-    "koa": "^2.10.0",
+    "koa": "^2.11.0",
     "koa-body": "^4.1.1",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "@koa/cors": "^3.0.0",
-    "lokijs": "^1.5.7"
+    "lokijs": "^1.5.8",
+    "rfc6902": "^3.0.4"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",
-    "@types/dotenv": "^6.1.1",
-    "@types/koa": "^2.0.51",
-    "@types/koa-compose": "^3.2.4",
+    "@types/koa": "^2.0.52",
+    "@types/koa-compose": "^3.2.5",
     "@types/koa-router": "^7.0.42",
     "@types/koa-static": "^4.0.1",
     "@types/lokijs": "^1.5.2",
-    "@types/node": "^12.11.1",
+    "@types/node": "^12.12.11",
     "rimraf": "^3.0.0",
     "tsc-watch": "^4.0.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   }
 }
