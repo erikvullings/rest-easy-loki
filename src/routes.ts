@@ -1,5 +1,5 @@
-import Router from "koa-router";
-import { applyPatch } from "rfc6902";
+import Router from 'koa-router';
+import { applyPatch } from 'rfc6902';
 import {
   all,
   collections,
@@ -7,11 +7,11 @@ import {
   get,
   post,
   update,
-  updateItem
-} from "./database";
-import { environment } from "./environment";
-import { IMutation } from "./models";
-import { paginationFilter, propertyMap } from "./utils";
+  updateItem,
+} from './database';
+import { environment } from './environment';
+import { IMutation } from './models';
+import { paginationFilter, propertyMap } from './utils';
 
 export const router = new Router();
 
