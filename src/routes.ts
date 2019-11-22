@@ -1,7 +1,17 @@
-import Router from 'koa-router';
-import { all, collections, del, get, post, update, updateItem } from './database';
-import { environment } from './environment';
-import { paginationFilter, propertyMap } from './utils';
+import Router from "koa-router";
+import { applyPatch } from "rfc6902";
+import {
+  all,
+  collections,
+  del,
+  get,
+  post,
+  update,
+  updateItem
+} from "./database";
+import { environment } from "./environment";
+import { IMutation } from "./models";
+import { paginationFilter, propertyMap } from "./utils";
 
 export const router = new Router();
 
@@ -24,7 +34,12 @@ router.get('/api/:collection/view', async ctx => {
   const map = propertyMap(ctx.query);
   const filter = paginationFilter(ctx.query);
   const results = all(collection, ctx.query.q);
-  ctx.body = map && results ? (filter ? results.filter(filter).map(map) : results.map(map)) : results;
+  ctx.body =
+    map && results
+      ? filter
+        ? results.filter(filter).map(map)
+        : results.map(map)
+      : results;
 });
 
 /** Get by ID */
@@ -54,6 +69,30 @@ router.put('/api/:collection/:id', async ctx => {
   const { collection, id } = ctx.params;
   const item = ctx.request.body;
   ctx.body = update(collection, +id, item);
+});
+
+router.patch('/api/:collection/:id', async ctx => {
+  const { collection, id } = ctx.params;
+  if (id) {
+    const item = get(collection, +id);
+    const mutation = ctx.request.body as IMutation;
+    if (item && mutation && mutation.patch) {
+      const { saveChanges, patch } = mutation;
+      const errors = applyPatch(item, patch);
+      const hasErrors = errors.some(e => e !== null);
+      if (hasErrors) {
+        errors.forEach(e => e && console.error(e));
+        ctx.status = 409;
+        ctx.body = errors;
+      } else {
+        if (saveChanges) {
+          delete mutation.saveChanges;
+          post(saveChanges, mutation);
+        }
+        ctx.body = update(collection, +id, item);
+      }
+    }
+  }
 });
 
 router.put('/api/:collection', async ctx => {

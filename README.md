@@ -58,6 +58,19 @@ startService();
 - Get the item with `$loki` ID: [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/1).
 - Delete the item with `$loki` ID: Make a DELETE request to [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/1).
 - Update the item by ID. PUT the item as an `application/json` body to [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/ID). Alternatively, change the original item (from the GET, so including `$loki` ID) and PUT it back to [https://localhost:3000/api/COLLECTION_NAME](https://localhost:3000/api/COLLECTION_NAME)
+- Patch the item by ID, where the patch is based on [RFC6902](https://www.npmjs.com/package/rfc6902). PATCH item is an `application/json` body to [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/ID). The send patch object is defined as specified below. In case `saveChanges` is specified, the patch is also saved to the appropriate collection (after removing the `saveChanges` property).
+
+```ts
+export interface IMutation extends ILokiObj {
+  /**
+   * Save changes to collection: if set, save this object,
+   * except the `saveChanges` property, to the `saveChanges` collection
+   */
+  saveChanges?: string;
+  /** RFC6902 JSON patch */
+  patch?: Operation[];
+}
+```
 
 ### Filtering collections
 
