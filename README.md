@@ -80,11 +80,19 @@ export interface IMutation extends ILokiObj {
 
 ### Sharing the public folder
 
-- You can use the `public` folder for sharing static files or your own web application.
+You can use the `public` folder for sharing static files or your own web application.
+
+### Uploading files
+
+You can use the `upload` folder for uploading files to a (automatically created) CONTEXT folder, if enabled on start-up using the `-u` instruction. Test it via `curl -F "file=@filename.jpg" http://localhost:3030/upload/:CONTEXT`. Files will be served `http://localhost:3030/`.
+
+### Socket.io support
+
+If enabled using the `io` flag (or -i) so clients can subscribe to receive updates when a value has changed. Clients can either subscribe to a collection `socket.subscribe('COLLECTION_NAME')`, or to a collection item `socket.subscribe('COLLECTION_NAME/$LOKI')`. The latter is, for example, useful when you have multiple editors. Subscribers receive the updated item.
 
 ### Serving environment variables
 
-- The [http://localhost:3000/api/env](http://localhost:3000/api/env) serves all environment variables that start with `LOKI_` (except the `LOKI_AUTHZ_`, so you don't accidentally share secrets). Since all key-value pairs are strings, a type conversion to boolean, number and arrays (using the , as separator) is performed.
+The [http://localhost:3000/api/env](http://localhost:3000/api/env) serves all environment variables that start with `LOKI_` (except the `LOKI_AUTHZ_`, so you don't accidentally share secrets). Since all key-value pairs are strings, a type conversion to boolean, number and arrays (using the , as separator) is performed.
 
 ### Authorization
 

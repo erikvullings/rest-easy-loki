@@ -1,8 +1,8 @@
 import commandLineArgs from 'command-line-args';
 import { OptionDefinition } from 'command-line-args';
+import { config } from './config';
 import { ICommandOptions } from './models/command-options';
 import { startService } from './serve';
-import { config } from './config';
 
 // tslint:disable-next-line: no-var-requires
 const npm = require('../package.json') as {
@@ -31,7 +31,7 @@ export class CommandLineInterface {
       alias: 'h',
       type: Boolean,
       typeLabel: 'Boolean',
-      description: 'Show the help manual',
+      description: 'Show the help manual.',
     },
     {
       name: 'cors',
@@ -39,7 +39,15 @@ export class CommandLineInterface {
       type: Boolean,
       typeLabel: 'Boolean',
       defaultValue: config.cors,
-      description: 'Enable CORS (default true)',
+      description: `Enable CORS ($LOKI_CORS ${config.cors}).`,
+    },
+    {
+      name: 'io',
+      alias: 'i',
+      type: Boolean,
+      typeLabel: 'Boolean',
+      defaultValue: config.io,
+      description: `Enable socket.io ($LOKI_IO ${config.io}).`,
     },
     {
       name: 'pretty',
@@ -47,7 +55,7 @@ export class CommandLineInterface {
       defaultValue: config.pretty,
       type: Boolean,
       typeLabel: 'Boolean',
-      description: 'Enable pretty output, default taken from environment settings, $LOKI_PRETTY, default true.',
+      description: `Enable pretty output ($LOKI_PRETTY ${config.pretty}).`,
     },
     {
       name: 'port',
@@ -55,7 +63,7 @@ export class CommandLineInterface {
       defaultValue: config.port,
       type: Boolean,
       typeLabel: 'Boolean',
-      description: 'Port to use, default taken from environment settings, $LOKI_PORT, otherwise 3000',
+      description: `Port to use ($LOKI_PORT ${config.port}).`,
     },
     {
       name: 'sizeLimit',
@@ -63,7 +71,22 @@ export class CommandLineInterface {
       defaultValue: config.sizeLimit,
       type: String,
       typeLabel: 'String',
-      description: 'Message size limit for body parser, $LOKI_SIZE_LIMIT, default 25mb',
+      description: `Message size limit for body parser ($LOKI_SIZE_LIMIT ${config.sizeLimit}).`,
+    },
+    {
+      name: 'upload',
+      alias: 'u',
+      type: String,
+      typeLabel: 'String',
+      description: 'Optional relative path to the `upload` folder to upload files to `/upload/:CONTEXT` URL.',
+    },
+    {
+      name: 'public',
+      alias: 'b',
+      defaultValue: 'public',
+      type: String,
+      typeLabel: 'String',
+      description: 'Relative path to a `public` folder to share your files, default \'public\'.',
     },
     {
       name: 'db',
@@ -71,7 +94,7 @@ export class CommandLineInterface {
       defaultValue: config.db,
       type: String,
       typeLabel: 'String',
-      description: 'Name of the database taken from environment settings, $LOKI_DB, otherwise `rest_easy_loki.db`.',
+      description: `Name of the database taken from environment settings ($LOKI_DB ${config.db}).`,
     },
   ];
 
@@ -94,6 +117,14 @@ export class CommandLineInterface {
         {
           desc: '02. Start the service on port 3456, enabling CORS, and using verbose output.',
           example: `$ ${cmdName} -p 3456 -v -c`,
+        },
+        {
+          desc: '03. Start the service on port 3456, allowing uploading files to the upload folder.',
+          example: `$ ${cmdName} -p 3456 -u ./upload`,
+        },
+        {
+          desc: '04. Start the service and allow clients to subscribe to updates via socket.io.',
+          example: `$ ${cmdName} -i`,
         },
       ],
     },

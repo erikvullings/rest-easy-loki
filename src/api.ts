@@ -1,12 +1,17 @@
 // tslint:disable-next-line: no-var-requires
 const cors = require('@koa/cors');
+import * as fs from 'fs';
+import * as http from 'http';
 import Koa from 'koa';
-import bodyParser from 'koa-body';
+import koaBody from 'koa-body';
 import serve from 'koa-static';
+import * as path from 'path';
 import { pep } from './authorization';
 import { logger, setLoggingOptions } from './logging';
 import { ICommandOptions } from './models/command-options';
-import { router } from './routes';
+import { createRouter } from './routes';
+import { createSocketService } from './socket-service';
+import { uploadService } from './upload-service';
 
 const state = {
   pretty: false,
@@ -14,25 +19,58 @@ const state = {
   cors: false,
 } as ICommandOptions;
 
-export const createApi = (config: Partial<ICommandOptions>): Koa => {
+export const createApi = (config: ICommandOptions): { api: Koa, server?: http.Server } => {
   if (config.pretty) {
     state.pretty = config.pretty;
   }
-  setLoggingOptions(state.pretty);
+  setLoggingOptions(state.pretty as boolean);
   if (config.port) {
     state.port = config.port;
   }
   const api: Koa = new Koa();
 
+  // custom 404
+  // api.use(async (ctx, next) => {
+  //   await next();
+  //   if (ctx.body || !ctx.idempotent) {
+  //     return;
+  //   }
+  //   ctx.redirect('/404.html');
+  // });
+
   if (config.cors) {
     console.log('Enabling CORS.');
+    // api.use(cors({ credentials: true }));
     api.use(cors());
   }
-  api.use(bodyParser({formLimit: config.sizeLimit, jsonLimit: config.sizeLimit }));
+
+  const ss = config.io ? createSocketService(api) : undefined;
+
+  api.use(
+    koaBody({
+      formLimit: config.sizeLimit,
+      jsonLimit: config.sizeLimit,
+      multipart: true,
+    }),
+  );
   api.use(logger);
-  api.use(serve('./public'));
+  // Serve public folder
+  if (config.public) {
+    api.use(serve(path.resolve(process.cwd(), config.public)));
+  }
   api.use(pep);
+  // Allow uploading files to 'config.upload' folder. Files can be uploaded to /upload/:CONTEXT.
+  if (config.upload) {
+    const uploadPath = path.resolve(process.cwd(), config.upload);
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath);
+    }
+    api.use(serve(uploadPath));
+    api.use(uploadService(uploadPath));
+    console.log(`Uploading files enabled: POST to /upload/:CONTEXT and the files will be saved in ${uploadPath}.`);
+  }
+  const router = createRouter(ss ? ss.io : undefined);
   api.use(router.routes());
   api.use(router.allowedMethods());
-  return api;
+  return { api, server: ss ? ss.server : undefined };
 };
