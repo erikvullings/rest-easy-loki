@@ -8,7 +8,12 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "program": "${workspaceFolder}\\dist\\index.js",
+      "program": "${workspaceFolder}\\src\\cli.ts",
+      "args": [
+        "--upload",
+        "upload",
+        "-i"
+      ],
       "outFiles": [
         "${workspaceFolder}/**/*.js"
       ],
