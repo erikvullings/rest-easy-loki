@@ -84,7 +84,7 @@ You can use the `public` folder for sharing static files or your own web applica
 
 ### Uploading files
 
-You can use the `upload` folder for uploading files to a (automatically created) CONTEXT folder, if enabled on start-up using the `-u` instruction. Test it via `curl -F "file=@filename.jpg" http://localhost:3030/upload/:CONTEXT`. Files will be served `http://localhost:3030/`.
+You can use the `upload` folder for uploading files to a (automatically created) CONTEXT folder, if enabled on start-up using the `-u` instruction. Test it via `curl -F "file=@filename.jpg" http://localhost:3030/upload/:CONTEXT`. Files will be served from `http://localhost:3030/:CONTEXT/ORG_FILENAME`. When uploading the same filename in the same context, the previous version will be overwritten. No index file is created, so the contents of the locally created folders are not visible externally. Also note that the CONTEXT supports sub-folders too.
 
 ### Socket.io support
 

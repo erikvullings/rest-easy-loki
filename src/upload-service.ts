@@ -12,8 +12,8 @@ export const uploadService = (uploadPath: string) => async (ctx: Koa.Context, ne
       ctx.throw(400, "Missing context! Please use '/upload/:CONTEXT'."); // bad request
     }
     const tmpdir = path.join(uploadPath, context);
-    const baseUrl = `/upload/${context}/`;
-    fs.mkdir(tmpdir, err => {
+    const baseUrl = `/${context}/`;
+    fs.mkdir(tmpdir, { recursive: true }, err => {
       if (err && err.code !== 'EEXIST') {
         const errMsg = `Error creating directory ${tmpdir}! Error: ${err.code} - ${err.message}.`;
         reject('Error creating directory');
