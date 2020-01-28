@@ -4,3 +4,8 @@ pnpm-lock.yaml
 *.db
 *.json
 src
+upload
+.vscode
+.env
+.prettierrc
+public/.gitkeep
