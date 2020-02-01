@@ -1,9 +1,10 @@
 import Router from 'koa-router';
 import { applyPatch } from 'rfc6902';
 import IO from 'socket.io';
-import { all, collections, del, get, post, update, updateItem } from './database';
+import { all, collections, del, get, post, update } from './database';
 import { environment } from './environment';
 import { IMutation } from './models';
+import { ILokiObj } from './models/loki-obj';
 import { paginationFilter, propertyMap } from './utils';
 
 export const createRouter = (io?: IO.Server) => {
@@ -53,16 +54,19 @@ export const createRouter = (io?: IO.Server) => {
     const item = ctx.request.body;
     ctx.body = post(collection, item);
     if (io) {
-      io.emit(collection, ctx.body);
+      setTimeout(() => io.emit(collection, ctx.body), 0);
     }
   });
 
   router.put('/api/:collection/:id', async ctx => {
     const { collection, id } = ctx.params;
-    const item = ctx.request.body;
-    ctx.body = update(collection, +id, item);
+    const item = ctx.request.body as ILokiObj;
+    if (item.$loki !== +id) {
+      ctx.throw('Item ID does not match route ID.');
+    }
+    ctx.body = update(collection, item);
     if (io) {
-      io.emit(`${collection}/${id}`, ctx.body);
+      setTimeout(() => io.emit(`${collection}/${id}`, ctx.body), 0);
     }
   });
 
@@ -84,9 +88,9 @@ export const createRouter = (io?: IO.Server) => {
             delete mutation.saveChanges;
             post(saveChanges, mutation);
           }
-          ctx.body = update(collection, +id, item);
+          ctx.body = update(collection, item);
           if (io) {
-            io.emit(`${collection}/${id}`, ctx.body);
+            setTimeout(() => io.emit(`${collection}/${id}`, ctx.body), 0);
           }
         }
       }
@@ -96,9 +100,9 @@ export const createRouter = (io?: IO.Server) => {
   router.put('/api/:collection', async ctx => {
     const { collection } = ctx.params;
     const item = ctx.request.body;
-    ctx.body = updateItem(collection, item);
+    ctx.body = update(collection, item);
     if (io && item.id) {
-      io.emit(`${collection}/${item.id}`, ctx.body);
+      setTimeout(() => io.emit(`${collection}/${item.id}`, ctx.body), 0);
     }
   });
 
@@ -106,7 +110,7 @@ export const createRouter = (io?: IO.Server) => {
     const { collection, id } = ctx.params;
     ctx.body = del(collection, +id);
     if (io) {
-      io.emit(`${collection}/${id}`);
+      setTimeout(() => io.emit(`${collection}/${id}`), 0);
     }
   });
 

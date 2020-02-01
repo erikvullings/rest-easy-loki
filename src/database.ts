@@ -89,16 +89,7 @@ export const del = (collectionName: string, id: number) => {
   return false;
 };
 
-export const update = (collectionName: string, id: number, item: any) => {
-  if (!collectionStore.hasOwnProperty(collectionName)) {
-    return false;
-  }
-  const collection = collectionStore[collectionName];
-  const it = collection.get(id);
-  return collection.update(Object.assign(it, item));
-};
-
-export const updateItem = (collectionName: string, item: any) => {
+export const update = (collectionName: string, item: any) => {
   if (!collectionStore.hasOwnProperty(collectionName)) {
     return false;
   }

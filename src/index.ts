@@ -9,7 +9,6 @@ import {
   post,
   startDatabase,
   update,
-  updateItem,
 } from './database';
 
 export const db = {
@@ -22,5 +21,4 @@ export const db = {
   post,
   startDatabase,
   update,
-  updateItem,
 };
