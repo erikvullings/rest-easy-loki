@@ -39,7 +39,7 @@ export const createApi = (config: ICommandOptions): { api: Koa, server?: http.Se
   // });
 
   if (config.cors) {
-    console.log('Enabling CORS.');
+    console.log('Enabled CORS.');
     // api.use(cors({ credentials: true }));
     api.use(cors());
   }
@@ -67,7 +67,7 @@ export const createApi = (config: ICommandOptions): { api: Koa, server?: http.Se
     }
     api.use(serve(uploadPath));
     api.use(uploadService(uploadPath));
-    console.log(`Uploading files enabled: POST to /upload/:CONTEXT and the files will be saved in ${uploadPath}.`);
+    console.log(`Enabled file uploads: POST to /upload/:CONTEXT and the files will be saved in ${uploadPath}.`);
   }
   const router = createRouter(ss ? ss.io : undefined);
   api.use(router.routes());

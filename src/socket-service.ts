@@ -3,7 +3,7 @@ import * as Koa from 'koa';
 import IO from 'socket.io';
 
 export const createSocketService = (api: Koa) => {
-  console.log('Enabling SOCKET.IO: subscribe to COLLECTION or COLLECTION/:ID to receive update notifications.');
+  console.log('Enabled SOCKET.IO: subscribe to COLLECTION or COLLECTION/:ID to receive update notifications.');
   const server = http.createServer(api.callback());
   // const options = cors ? { origins: '*:*'} : undefined;
   // console.table(options);
