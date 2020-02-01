@@ -3,7 +3,7 @@ import Koa from 'koa';
 import * as path from 'path';
 
 export const uploadService = (uploadPath: string) => async (ctx: Koa.Context, next: () => Promise<any>) => {
-  if ('POST' !== ctx.method && !/^\/upload\//.test(ctx.path)) {
+  if (ctx.method !== 'POST' || !/^\/upload\//.test(ctx.path)) {
     return await next();
   }
   return new Promise((resolve, reject) => {
