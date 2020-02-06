@@ -56,7 +56,9 @@ export const createApi = (config: ICommandOptions): { api: Koa, server?: http.Se
   api.use(logger);
   // Serve public folder
   if (config.public) {
-    api.use(serve(path.resolve(process.cwd(), config.public)));
+    const publicPath = path.resolve(process.cwd(), config.public);
+    console.log('Enabled serving files from ' + publicPath);
+    api.use(serve(publicPath));
   }
   api.use(pep);
   // Allow uploading files to 'config.upload' folder. Files can be uploaded to /upload/:CONTEXT.

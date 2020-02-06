@@ -80,7 +80,7 @@ export interface IMutation extends ILokiObj {
 
 ### Sharing the public folder
 
-You can use the `public` folder for sharing static files or your own web application.
+You can use the `public` folder for sharing static files or your own web application. Enabled by default.
 
 ### Uploading files
 

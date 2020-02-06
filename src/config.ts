@@ -5,6 +5,7 @@ dotenv.config();
 
 export const config = {
   help: false,
+  public: './public',
   pretty: process.env.LOKI_PRETTY ? process.env.LOKI_PRETTY : true,
   port: process.env.LOKI_PORT || 3000,
   cors: process.env.LOKI_CORS ? process.env.LOKI_CORS : true,
