@@ -10,11 +10,11 @@ import { paginationFilter, propertyMap } from './utils';
 export const createRouter = (io?: IO.Server) => {
   const router = new Router();
 
-  router.get('/api/env', async ctx => {
+  router.get('/api/env', async (ctx) => {
     ctx.body = environment();
   });
 
-  router.get('/api/collections', async ctx => {
+  router.get('/api/collections', async (ctx) => {
     ctx.status = 201;
     ctx.body = collections();
   });
@@ -24,7 +24,7 @@ export const createRouter = (io?: IO.Server) => {
    * - Specify `props` containing a comma separted array of top-level properties.
    * - Optionally, specify `from` and `to` as query params for pagination, e.g. ?from=0&to=5
    */
-  router.get('/api/:collection/view', async ctx => {
+  router.get('/api/:collection/view', async (ctx) => {
     const { collection } = ctx.params;
     const map = propertyMap(ctx.query);
     const filter = paginationFilter(ctx.query);
@@ -33,23 +33,29 @@ export const createRouter = (io?: IO.Server) => {
   });
 
   /** Get by ID */
-  router.get('/api/:collection/:id', async ctx => {
+  router.get('/api/:collection/:id', async (ctx) => {
     const { collection, id } = ctx.params;
     ctx.body = get(collection, +id);
+  });
+
+  /** Get by unique ID */
+  router.get('/api/:collection/:unique/:id', async (ctx) => {
+    const { collection, id, unique } = ctx.params;
+    ctx.body = get(collection, id, unique);
   });
 
   /**
    * Request the whole collection
    * - Optionally, specify from and to as query params for pagination, e.g. ?from=0&to=5
    */
-  router.get('/api/:collection', async ctx => {
+  router.get('/api/:collection', async (ctx) => {
     const { collection } = ctx.params;
     const pages = paginationFilter(ctx.query);
     const results = all(collection, ctx.query.q);
     ctx.body = pages && results ? results.filter(pages) : results;
   });
 
-  router.post('/api/:collection', async ctx => {
+  router.post('/api/:collection', async (ctx) => {
     const { collection } = ctx.params;
     const item = ctx.request.body;
     ctx.body = post(collection, item);
@@ -58,7 +64,7 @@ export const createRouter = (io?: IO.Server) => {
     }
   });
 
-  router.put('/api/:collection/:id', async ctx => {
+  router.put('/api/:collection/:id', async (ctx) => {
     const { collection, id } = ctx.params;
     const item = ctx.request.body as ILokiObj;
     if (item.$loki !== +id) {
@@ -70,7 +76,7 @@ export const createRouter = (io?: IO.Server) => {
     }
   });
 
-  router.patch('/api/:collection/:id', async ctx => {
+  router.patch('/api/:collection/:id', async (ctx) => {
     const { collection, id } = ctx.params;
     if (id) {
       const item = get(collection, +id);
@@ -78,9 +84,9 @@ export const createRouter = (io?: IO.Server) => {
       if (item && mutation && mutation.patch) {
         const { saveChanges, patch } = mutation;
         const errors = applyPatch(item, patch);
-        const hasErrors = errors.some(e => e !== null);
+        const hasErrors = errors.some((e) => e !== null);
         if (hasErrors) {
-          errors.forEach(e => e && console.error(e));
+          errors.forEach((e) => e && console.error(e));
           ctx.status = 409;
           ctx.body = errors;
         } else {
@@ -97,7 +103,7 @@ export const createRouter = (io?: IO.Server) => {
     }
   });
 
-  router.put('/api/:collection', async ctx => {
+  router.put('/api/:collection', async (ctx) => {
     const { collection } = ctx.params;
     const item = ctx.request.body;
     ctx.body = update(collection, item);
@@ -106,7 +112,7 @@ export const createRouter = (io?: IO.Server) => {
     }
   });
 
-  router.delete('/api/:collection/:id', async ctx => {
+  router.delete('/api/:collection/:id', async (ctx) => {
     const { collection, id } = ctx.params;
     ctx.body = del(collection, +id);
     if (io) {
