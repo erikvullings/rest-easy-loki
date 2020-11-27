@@ -1,6 +1,6 @@
 import http from 'http';
 import * as Koa from 'koa';
-import IO from 'socket.io';
+import { Server } from 'socket.io';
 
 export const createSocketService = (api: Koa) => {
   console.log('Enabled SOCKET.IO: subscribe to COLLECTION or COLLECTION/:ID to receive update notifications.');
@@ -8,11 +8,13 @@ export const createSocketService = (api: Koa) => {
   // const options = cors ? { origins: '*:*'} : undefined;
   // console.table(options);
   // const io = IO(server, options);
-  const io = IO(server);
-  io.on('connection', client => {
+  const io = new Server(server);
+  io.on('connection', (client) => {
     console.info('Client connected: ' + client.id);
-    client.on('event', data => { console.log(data); });
+    client.on('event', (data: any) => {
+      console.log(data);
+    });
     // client.on('disconnect', () => { /* … */ });
   });
-  return { io, server};
+  return { io, server };
 };
