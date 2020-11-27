@@ -50,7 +50,21 @@ startService();
 
 ### Configuration
 
-Reads `.env` file for specifying the database name, port, CORS and message size limits.
+Reads `.env` file for specifying the database name, port, CORS and message size limits. E.g.
+
+```bash
+LOKI_PORT=3030
+LOKI_DB="simple.db"
+LOKI_CORS=true
+LOKI_CONFIG="config.json"
+LOKI_SIZE_LIMIT="250mb"
+LOKI_PRETTY=true
+LOKI_AUTHZ_READ=""
+LOKI_AUTHZ_CREATE="key1"
+LOKI_AUTHZ_UPDATE="key1"
+LOKI_AUTHZ_DELETE="key1"
+LOKI_AUTHZ_WHITELIST="localhost"
+```
 
 When creating the database for the first time, you optionally can also configure the database collections using LokiJS options, e.g. by specifying unique property names, or properties that must be indexed. In addition, you can import any existing JSON file in one go. For example, see `config.json` below: with it, you create two collections, `users` and `projects`, and each collection has a unique property `id` and several indices. In addition, it imports the file specified by `jsonImport`. 
 

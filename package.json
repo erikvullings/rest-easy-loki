@@ -10,7 +10,7 @@
   "scripts": {
     "clean": "rimraf ./dist",
     "serve": "node ./dist/serve.js",
-    "build": "tsc",
+    "build": "tsc -b",
     "watch": "tsc -w",
     "start": "tsc-watch --onSuccess \"node ./dist/cli.js --upload upload\" --onFailure \"echo Beep! Compilation Failed\" --compiler typescript/bin/tsc",
     "dry-run": "npm publish --dry-run",

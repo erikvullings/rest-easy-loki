@@ -1,15 +1,7 @@
 export { createApi } from './api';
-import {
-  all,
-  collections,
-  createCollection,
-  del,
-  findOne,
-  get,
-  post,
-  startDatabase,
-  update,
-} from './database';
+export * from './models';
+
+import { all, collections, createCollection, del, findOne, get, post, startDatabase, update } from './database';
 
 export const db = {
   all,

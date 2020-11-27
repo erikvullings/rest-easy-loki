@@ -2,6 +2,7 @@ node_modules
 .editorconfig
 pnpm-lock.yaml
 *.db
+*.db.*
 *.json
 src
 upload
@@ -9,3 +10,4 @@ upload
 .env
 .prettierrc
 public/.gitkeep
+*.map
