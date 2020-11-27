@@ -1,11 +1,11 @@
 {
   "name": "rest-easy-loki",
-  "version": "0.7.6",
+  "version": "1.0.0",
   "description": "A REST interface for lokijs supporting CRUD operations and automatic creation of new collections.",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "bin": {
-    "rest-easy-loki": "./bin/run.js"
+    "rest-easy-loki": "bin/run.js"
   },
   "scripts": {
     "clean": "rimraf ./dist",
