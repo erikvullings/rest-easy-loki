@@ -2,7 +2,10 @@ import * as fs from 'fs';
 import Koa from 'koa';
 import * as path from 'path';
 
-export const uploadService = (uploadPath: string) => async (ctx: Koa.Context, next: () => Promise<any>) => {
+export const uploadService = (uploadPath: string) => async (
+  ctx: Koa.Context,
+  next: () => Promise<any>,
+): Promise<void> => {
   if (ctx.method !== 'POST' || !/^\/upload\//.test(ctx.path)) {
     return await next();
   }
@@ -13,7 +16,7 @@ export const uploadService = (uploadPath: string) => async (ctx: Koa.Context, ne
     }
     const tmpdir = path.join(uploadPath, context);
     const baseUrl = `/${context}/`;
-    fs.mkdir(tmpdir, { recursive: true }, err => {
+    fs.mkdir(tmpdir, { recursive: true }, (err) => {
       if (err && err.code !== 'EEXIST') {
         const errMsg = `Error creating directory ${tmpdir}! Error: ${err.code} - ${err.message}.`;
         reject('Error creating directory');
