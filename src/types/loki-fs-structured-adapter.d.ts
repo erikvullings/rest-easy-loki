@@ -29,14 +29,8 @@ declare class LokiFsStructuredAdapter implements LokiPersistenceAdapter {
   public deleteDatabase(dbname: string, callback: (err?: Error | null) => void): void;
 }
 
-declare class _LokiFsStructuredAdapter extends LokiFsStructuredAdapter {}
-
-declare module LokiFsStructuredAdapterConstructor {
-  export class LokiFsStructuredAdapter extends _LokiFsStructuredAdapter {}
-}
-
-declare module 'loki-fs-structured-adapter' {
+declare module 'lokijs/src/loki-fs-structured-adapter' {
   // const content: any;
   // export default content;
-  export = LokiFsStructuredAdapterConstructor;
+  export = LokiFsStructuredAdapter;
 }

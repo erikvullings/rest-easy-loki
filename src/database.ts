@@ -2,7 +2,7 @@ import fs from 'fs';
 import loki, { Collection } from 'lokijs';
 import { ILokiConfiguration } from './models';
 import { sortByDateDesc } from './utils';
-import lfsa from './utils/loki-fs-structured-adapter';
+import lfsa from 'lokijs/src/loki-fs-structured-adapter';
 
 let db: loki;
 

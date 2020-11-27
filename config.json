@@ -1,0 +1,14 @@
+{
+  "collections": {
+    "users": {
+      "jsonImport": "../projectboard/output/employees.json",
+      "unique": ["id"],
+      "indices": ["first", "last", "keywords", "summary"]
+    },
+    "projects": {
+      "jsonImport": "../projectboard/output/projects.json",
+      "unique": ["id"],
+      "indices": ["name", "keywords", "summary"]
+    }
+  }
+}
