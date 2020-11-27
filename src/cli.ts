@@ -86,7 +86,7 @@ export class CommandLineInterface {
       defaultValue: 'public',
       type: String,
       typeLabel: 'String',
-      description: 'Relative path to a `public` folder to share your files, default \'public\'.',
+      description: "Relative path to a `public` folder to share your files, default 'public'.",
     },
     {
       name: 'db',
@@ -95,6 +95,13 @@ export class CommandLineInterface {
       type: String,
       typeLabel: 'String',
       description: `Name of the database taken from environment settings ($LOKI_DB ${config.db}).`,
+    },
+    {
+      name: 'config',
+      defaultValue: config.config,
+      type: String,
+      typeLabel: 'String',
+      description: `Name of configuration file to configure the DB ($LOKI_CONFIG).`,
     },
   ];
 

@@ -17,4 +17,6 @@ export interface ICommandOptions {
   db?: string;
   /** Message size limit for URL-encoded or JSON messages. Used in bodyparser, e.g. 1mb. Default 25mb */
   sizeLimit?: string;
+  /** Read the configuration file to configure the database */
+  config?: string;
 }

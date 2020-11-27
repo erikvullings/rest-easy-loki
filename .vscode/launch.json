@@ -12,7 +12,9 @@
       "args": [
         "--upload",
         "upload",
-        "-i"
+        "-i",
+        "--config",
+        "./config.json"
       ],
       "outFiles": [
         "${workspaceFolder}/**/*.js"

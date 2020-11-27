@@ -6,6 +6,9 @@ A simple REST interface for the in-memory database, `lokijs`, featuring:
 - Simple authorization using whitelisting domain names and API keys via environment variables.
 - Statically sharing the public folder
 - Retrieving environment variables starting with `LOKI_` via REST
+- Configuring the database collections using a config file
+
+This version has moved from the default `LokiFsAdapter` to the more performing `LokiFsStructuredAdapter`. Besides a [performance gain](https://github.com/techfort/LokiJS/wiki/LokiJS-persistence-and-adapters#an-example-using-fastest-and-most-scalable-lokifsstructuredadapter-for-nodejs-might-look-like-), it also means that we don't end up with a single database file anymore, but one overall database file and one per collection.
 
 ## Development
 
@@ -47,7 +50,64 @@ startService();
 
 ### Configuration
 
-- Reads `.env` file for specifying the database name, port, CORS and message size limits.
+Reads `.env` file for specifying the database name, port, CORS and message size limits.
+
+When creating the database for the first time, you optionally can also configure the database collections using LokiJS options, e.g. by specifying unique property names, or properties that must be indexed. In addition, you can import any existing JSON file in one go. For example, see `config.json` below: with it, you create two collections, `users` and `projects`, and each collection has a unique property `id` and several indices. In addition, it imports the file specified by `jsonImport`. 
+
+```json
+{
+  "collections": {
+    "users": {
+      "jsonImport": "./employees.json",
+      "unique": ["id"],
+      "indices": ["first", "last", "keywords", "summary"]
+    },
+    "projects": {
+      "jsonImport": "./projects.json",
+      "unique": ["id"],
+      "indices": ["name", "keywords", "summary"]
+    }
+  }
+}
+```
+
+The configuration file needs to adhere to the `ILokiConfiguration` interface, as specified below:
+
+```ts
+/** From LokiJS typings, but not exported */
+export interface CollectionOptions<E> {
+  disableMeta: boolean;
+  disableChangesApi: boolean;
+  disableDeltaChangesApi: boolean;
+  adaptiveBinaryIndices: boolean;
+  asyncListeners: boolean;
+  autoupdate: boolean;
+  clone: boolean;
+  cloneMethod: 'parse-stringify' | 'jquery-extend-deep' | 'shallow' | 'shallow-assign' | 'shallow-recurse-objects';
+  serializableIndices: boolean;
+  transactional: boolean;
+  ttl: number;
+  ttlInterval: number;
+  exact: (keyof E)[];
+  unique: (keyof E)[];
+  indices: keyof E | (keyof E)[];
+}
+
+export interface ExtendedCollectionOptions<E> extends CollectionOptions<E> {
+  /** JSON file to import: expects a JSON array which will be inserted into the collection */
+  jsonImport?: string;
+}
+
+export interface ILokiConfiguration<T = {}> {
+  /** Create collections on startup if there are no collections yet */
+  collections?: {
+    /** Name of the collection */
+    [collectionName: string]: ExtendedCollectionOptions<T>;
+  };
+}
+```
+
+If you do specify one or more unique names, you can query the REST interface via [https://localhost:3000/api/COLLECTION_NAME/USERS/THOR](https://localhost:3000/api/COLLECTION_NAME/USERS/THOR).
 
 ### Managing collections (CRUD)
 
@@ -56,6 +116,7 @@ startService();
 - Automatic creation of new collections: when you post a message to a non-existing collection, it is automatically created.
 - Create a new item: POST the item as an `application/json` body to [https://localhost:3000/api/COLLECTION_NAME](https://localhost:3000/api/COLLECTION_NAME).
 - Get the item with `$loki` ID: [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/1).
+- Get the item by unique name `UNIQUE_NAME`: [https://localhost:3000/api/COLLECTION_NAME/UNIQUE_PROP_NAME/PROP_VALUE](https://localhost:3000/api/COLLECTION_NAME/USERS/THOR).
 - Delete the item with `$loki` ID: Make a DELETE request to [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/1).
 - Update the item by ID. PUT the item as an `application/json` body to [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/ID). Alternatively, change the original item (from the GET, so including `$loki` ID) and PUT it back to [https://localhost:3000/api/COLLECTION_NAME](https://localhost:3000/api/COLLECTION_NAME)
 - Patch the item by ID, where the patch is based on [RFC6902](https://www.npmjs.com/package/rfc6902). PATCH item is an `application/json` body to [https://localhost:3000/api/COLLECTION_NAME/ID](https://localhost:3000/api/COLLECTION_NAME/ID). The send patch object is defined as specified below. In case `saveChanges` is specified, the patch is also saved to the appropriate collection (after removing the `saveChanges` property).
