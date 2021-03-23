@@ -24,6 +24,8 @@
   },
   "keywords": [
     "REST",
+    "API",
+    "Koa",
     "lokijs",
     "database"
   ],
