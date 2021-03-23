@@ -5,8 +5,10 @@ A simple REST interface for the in-memory database, `lokijs`, featuring:
 - Automatic creation of collections, including CRUD actions, pagination and MongoDB-like queries.
 - Simple authorization using whitelisting domain names and API keys via environment variables.
 - Statically sharing the public folder
+- Uploading files using the upload folder
 - Retrieving environment variables starting with `LOKI_` via REST
 - Configuring the database collections using a config file
+- Add support for CORS and compression
 
 This version has moved from the default `LokiFsAdapter` to the more performing `LokiFsStructuredAdapter`. Besides a [performance gain](https://github.com/techfort/LokiJS/wiki/LokiJS-persistence-and-adapters#an-example-using-fastest-and-most-scalable-lokifsstructuredadapter-for-nodejs-might-look-like-), it also means that we don't end up with a single database file anymore, but one overall database file and one per collection.
 
