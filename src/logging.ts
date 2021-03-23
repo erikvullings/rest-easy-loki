@@ -16,7 +16,7 @@ interface ILogData {
 
 const state = { prettyLog: false };
 
-export const setLoggingOptions = (verbose: boolean) => state.prettyLog = verbose;
+export const setLoggingOptions = (verbose: boolean) => (state.prettyLog = verbose);
 
 function outputLog(data: Partial<ILogData>, thrownError: any) {
   if (state.prettyLog) {
@@ -37,7 +37,7 @@ export async function logger(ctx: Koa.Context, next: () => Promise<any>) {
   const logData: Partial<ILogData> = {
     method: ctx.method,
     url: ctx.url,
-    query: ctx.query,
+    query: ctx.request.querystring,
     remoteAddress: ctx.request.ip,
     host: ctx.headers['host'],
     userAgent: ctx.headers['user-agent'],
