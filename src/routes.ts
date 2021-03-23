@@ -28,7 +28,8 @@ export const createRouter = (io?: IO.Server) => {
     const { collection } = ctx.params;
     const map = propertyMap(ctx.query);
     const filter = paginationFilter(ctx.query);
-    const results = all(collection, ctx.query.q);
+    const query = ctx.query.q instanceof Array ? ctx.query.q.join('&') : ctx.query.q;
+    const results = all(collection, query);
     ctx.body = map && results ? (filter ? results.filter(filter).map(map) : results.map(map)) : results;
   });
 
@@ -51,7 +52,8 @@ export const createRouter = (io?: IO.Server) => {
   router.get('/api/:collection', async (ctx) => {
     const { collection } = ctx.params;
     const pages = paginationFilter(ctx.query);
-    const results = all(collection, ctx.query.q);
+    const query = ctx.query.q instanceof Array ? ctx.query.q.join('&') : ctx.query.q;
+    const results = all(collection, query);
     ctx.body = pages && results ? results.filter(pages) : results;
   });
 

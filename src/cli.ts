@@ -42,6 +42,21 @@ export class CommandLineInterface {
       description: `Enable CORS ($LOKI_CORS ${config.cors}).`,
     },
     {
+      name: 'compression',
+      alias: 'z',
+      type: Boolean,
+      typeLabel: 'Boolean',
+      defaultValue: config.compression,
+      description: `Enable ZIP compression ($LOKI_COMPRESSION ${config.compression}).`,
+    },
+    {
+      name: 'config',
+      defaultValue: config.config,
+      type: String,
+      typeLabel: 'String',
+      description: `Name of configuration file to configure the DB ($LOKI_CONFIG).`,
+    },
+    {
       name: 'io',
       alias: 'i',
       type: Boolean,
@@ -95,13 +110,6 @@ export class CommandLineInterface {
       type: String,
       typeLabel: 'String',
       description: `Name of the database taken from environment settings ($LOKI_DB ${config.db}).`,
-    },
-    {
-      name: 'config',
-      defaultValue: config.config,
-      type: String,
-      typeLabel: 'String',
-      description: `Name of configuration file to configure the DB ($LOKI_CONFIG).`,
     },
   ];
 

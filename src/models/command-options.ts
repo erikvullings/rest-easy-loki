@@ -19,4 +19,6 @@ export interface ICommandOptions {
   sizeLimit?: string;
   /** Read the configuration file to configure the database */
   config?: string;
+  /** If true, use zip compression for the messages */
+  compression?: boolean;
 }

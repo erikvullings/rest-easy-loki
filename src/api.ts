@@ -5,6 +5,7 @@ import * as http from 'http';
 import Koa from 'koa';
 import koaBody from 'koa-body';
 import serve from 'koa-static';
+import compress from 'koa-compress';
 import * as path from 'path';
 import { pep } from './authorization';
 import { logger, setLoggingOptions } from './logging';
@@ -13,20 +14,8 @@ import { createRouter } from './routes';
 import { createSocketService } from './socket-service';
 import { uploadService } from './upload-service';
 
-const state = {
-  pretty: false,
-  port: 3000,
-  cors: false,
-} as ICommandOptions;
-
-export const createApi = (config: ICommandOptions): { api: Koa, server?: http.Server } => {
-  if (config.pretty) {
-    state.pretty = config.pretty;
-  }
-  setLoggingOptions(state.pretty as boolean);
-  if (config.port) {
-    state.port = config.port;
-  }
+export const createApi = (config: ICommandOptions): { api: Koa; server?: http.Server } => {
+  setLoggingOptions(config.pretty as boolean);
   const api: Koa = new Koa();
 
   // custom 404
@@ -42,6 +31,12 @@ export const createApi = (config: ICommandOptions): { api: Koa, server?: http.Se
     console.log('Enabled CORS.');
     // api.use(cors({ credentials: true }));
     api.use(cors());
+  }
+
+  if (config.compression) {
+    console.log('Enabled compression with koa-compress.');
+    // api.use(cors({ credentials: true }));
+    api.use(compress());
   }
 
   const ss = config.io ? createSocketService(api) : undefined;
