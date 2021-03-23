@@ -47,7 +47,7 @@
     "koa-static": "^5.0.0",
     "lokijs": "^1.5.11",
     "rfc6902": "^4.0.2",
-    "socket.io": "^4.0.0"
+    "socket.io": "^2.4.0"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",
