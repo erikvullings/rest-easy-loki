@@ -2,6 +2,7 @@
 const cors = require('@koa/cors');
 import * as fs from 'fs';
 import * as http from 'http';
+import * as zlib from 'zlib';
 import Koa from 'koa';
 import koaBody from 'koa-body';
 import serve from 'koa-static';
@@ -36,7 +37,15 @@ export const createApi = (config: ICommandOptions): { api: Koa; server?: http.Se
   if (config.compression) {
     console.log('Enabled compression with koa-compress.');
     // api.use(cors({ credentials: true }));
-    api.use(compress());
+    api.use(
+      compress({
+        br: {
+          params: {
+            [zlib.constants.BROTLI_PARAM_QUALITY]: 3,
+          },
+        },
+      }),
+    );
   }
 
   const ss = config.io ? createSocketService(api) : undefined;
