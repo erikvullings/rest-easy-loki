@@ -1,3 +1,4 @@
+export { config } from './config';
 export { createApi } from './api';
 export * from './models';
 import Router from 'koa-router';
