@@ -18,9 +18,9 @@ const converter = (v: any): undefined | string | boolean | number | Array<string
   if (typeof v === 'string' && v.indexOf(',') > 0) {
     return v
       .split(',')
-      .filter(x => typeof x !== 'undefined')
-      .map(x => x.trim())
-      .map(x => converter(x) as string | number | boolean);
+      .filter((x) => typeof x !== 'undefined')
+      .map((x) => x.trim())
+      .map((x) => converter(x) as string | number | boolean);
   }
   return v;
 };
@@ -34,13 +34,10 @@ const converter = (v: any): undefined | string | boolean | number | Array<string
  */
 export const environment = () => {
   const { env } = process;
-  return Object.keys(env).reduce(
-    (acc, cur) => {
-      if (!block.test(cur) && passThrough.test(cur)) {
-        acc[cur] = converter(env[cur]);
-      }
-      return acc;
-    },
-    {} as { [key: string]: undefined | string | number | boolean | Array<number | string | boolean> },
-  );
+  return Object.keys(env).reduce((acc, cur) => {
+    if (!block.test(cur) && passThrough.test(cur)) {
+      acc[cur] = converter(env[cur]);
+    }
+    return acc;
+  }, {} as { [key: string]: undefined | string | number | boolean | Array<number | string | boolean> });
 };

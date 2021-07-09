@@ -7,7 +7,7 @@ import { IMutation } from './models';
 import { ILokiObj } from './models/loki-obj';
 import { paginationFilter, propertyMap } from './utils';
 
-export const createRouter = (io?: IO.Server) => {
+export const createRouter: (io?: IO.Server) => Router = (io?: IO.Server) => {
   const router = new Router();
 
   router.get('/api/env', async (ctx) => {

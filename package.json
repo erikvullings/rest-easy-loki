@@ -39,27 +39,27 @@
     "@koa/cors": "^3.1.0",
     "command-line-args": "^5.1.1",
     "command-line-usage": "^6.1.1",
-    "dotenv": "^8.2.0",
+    "dotenv": "^10.0.0",
     "koa": "^2.13.1",
     "koa-body": "^4.2.0",
     "koa-compress": "^5.0.1",
     "koa-router": "^10.0.0",
     "koa-static": "^5.0.0",
-    "lokijs": "^1.5.11",
+    "lokijs": "^1.5.12",
     "rfc6902": "^4.0.2",
-    "socket.io": "^4.0.0"
+    "socket.io": "^4.1.2"
   },
   "devDependencies": {
-    "@types/command-line-args": "^5.0.0",
-    "@types/koa": "^2.13.1",
+    "@types/command-line-args": "^5.0.1",
+    "@types/koa": "^2.13.4",
     "@types/koa-compose": "^3.2.5",
-    "@types/koa-compress": "^4.0.1",
-    "@types/koa-router": "^7.4.1",
-    "@types/koa-static": "^4.0.1",
-    "@types/lokijs": "^1.5.3",
-    "@types/node": "^14.14.35",
+    "@types/koa-compress": "^4.0.3",
+    "@types/koa-router": "^7.4.4",
+    "@types/koa-static": "^4.0.2",
+    "@types/lokijs": "^1.5.5",
+    "@types/node": "^16.3.0",
     "rimraf": "^3.0.2",
-    "tsc-watch": "^4.2.9",
-    "typescript": "^4.2.3"
+    "tsc-watch": "^4.4.0",
+    "typescript": "^4.3.5"
   }
 }

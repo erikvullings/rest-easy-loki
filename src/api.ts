@@ -1,4 +1,3 @@
-// tslint:disable-next-line: no-var-requires
 const cors = require('@koa/cors');
 import * as fs from 'fs';
 import * as http from 'http';
@@ -7,15 +6,17 @@ import Koa from 'koa';
 import koaBody from 'koa-body';
 import serve from 'koa-static';
 import compress from 'koa-compress';
+import Router from 'koa-router';
 import * as path from 'path';
 import { pep } from './authorization';
 import { logger, setLoggingOptions } from './logging';
-import { ICommandOptions } from './models/command-options';
+import { ICommandOptions } from './models';
 import { createRouter } from './routes';
 import { createSocketService } from './socket-service';
 import { uploadService } from './upload-service';
 
-export const createApi = (config: ICommandOptions): { api: Koa; server?: http.Server } => {
+/** Create the API, optionally injecting your own routes */
+export const createApi = (config: ICommandOptions, router?: Router): { api: Koa; server?: http.Server } => {
   setLoggingOptions(config.pretty as boolean);
   const api: Koa = new Koa();
 
@@ -75,8 +76,12 @@ export const createApi = (config: ICommandOptions): { api: Koa; server?: http.Se
     api.use(uploadService(uploadPath));
     console.log(`Enabled file uploads: POST to /upload/:CONTEXT and the files will be saved in ${uploadPath}.`);
   }
-  const router = createRouter(ss ? ss.io : undefined);
-  api.use(router.routes());
-  api.use(router.allowedMethods());
+  if (router) {
+    api.use(router.routes());
+    api.use(router.allowedMethods());
+  }
+  const dbRouter = createRouter(ss ? ss.io : undefined);
+  api.use(dbRouter.routes());
+  api.use(dbRouter.allowedMethods());
   return { api, server: ss ? ss.server : undefined };
 };
