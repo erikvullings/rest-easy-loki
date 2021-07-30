@@ -20,9 +20,9 @@ const importJSON = (collectionName: string, filename: string) => {
       const collection = db.getCollection(collectionName);
       if (json instanceof Array) {
         collection.insert(json);
-        // for (const o of json) {
-        //   collection.insertOne
-        // }
+        console.log(
+          `Finished reading ${filename}, number of entries in collection '${collection.name}': ${collection.count()}`,
+        );
       } else {
         console.warn(`JSON file is not an array! Ignoring ${filename}.`);
       }
@@ -37,18 +37,13 @@ const databaseInitialize = (options?: ILokiConfiguration) => {
     db.collections.forEach((c) => {
       collectionStore[c.name] = db.getCollection(c.name);
     });
-  } else if (options) {
+  } else if (options && options.collections && typeof options.collections === 'object') {
     const { collections } = options;
-    if (collections && typeof collections === 'object') {
-      for (const collectionName of Object.keys(collections)) {
-        const collection = collections[collectionName];
-        db.addCollection(collectionName, collection);
-        collection.jsonImport && importJSON(collectionName, collection.jsonImport);
-      }
+    for (const collectionName of Object.keys(collections)) {
+      const collection = collections[collectionName];
+      collectionStore[collectionName] = db.addCollection(collectionName, collection);
+      collection.jsonImport && importJSON(collectionName, collection.jsonImport);
     }
-    db.collections.forEach((c) => {
-      collectionStore[c.name] = db.getCollection(c.name);
-    });
   }
   // kick off any program logic or start listening to external events
   runProgramLogic();
@@ -77,7 +72,7 @@ export const startDatabase = (file = 'rest_easy_loki.db', cb?: () => void, optio
     autoload: true,
     autoloadCallback,
     autosave: true,
-    autosaveInterval: 4000,
+    throttledSaves: options ? options.throttledSaves : true,
   } as Partial<LokiConfigOptions>);
 };
 

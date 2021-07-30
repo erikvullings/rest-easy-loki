@@ -23,6 +23,7 @@ export interface ExtendedCollectionOptions<E> extends CollectionOptions<E> {
 }
 
 export interface ILokiConfiguration<T = {}> {
+  throttledSaves?: boolean;
   /** Create collections on startup if there are no collections yet */
   collections?: {
     /** Name of the collection */
