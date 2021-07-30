@@ -1,5 +1,5 @@
 {
-  "collections": {
+  "oldcollections": {
     "users": {
       "jsonImport": "../projectboard/output/employees.json",
       "unique": ["id"],
@@ -9,6 +9,32 @@
       "jsonImport": "../projectboard/output/projects.json",
       "unique": ["id"],
       "indices": ["name", "keywords", "summary"]
+    }
+  },
+  "throttledSaves": false,
+  "collections": {
+    "users": {
+      "jsonImport": "../projectboard/output/employees.json",
+      "unique": ["id"],
+      "indices": ["pcm", "keywords"]
+    },
+    "projects": {
+      "jsonImport": "../projectboard/output/projects.json",
+      "unique": ["id"],
+      "indices": ["name"]
+    },
+    "publications": {
+      "jsonImport": "../projectboard/output/newest_publications.json",
+      "unique": ["id"],
+      "indices": ["name"]
+    },
+    "customers": {
+      "jsonImport": "../projectboard/output/customers.json",
+      "indices": ["id"]
+    },
+    "sales": {
+      "jsonImport": "../projectboard/output/sales.json",
+      "indices": ["id"]
     }
   }
 }
