@@ -105,11 +105,11 @@ export const del = (collectionName: string, id: number) => {
   if (!collectionStore.hasOwnProperty(collectionName)) {
     return false;
   }
-  const item = collectionStore[collectionName].get(id);
-  if (item) {
-    return collectionStore[collectionName].remove(item);
-  }
-  return false;
+  // const item = collectionStore[collectionName].get(id);
+  // if (item) {
+  return collectionStore[collectionName].remove(id);
+  // }
+  // return false;
 };
 
 export const update = (collectionName: string, item: any) => {

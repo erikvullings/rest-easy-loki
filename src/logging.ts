@@ -47,7 +47,7 @@ export async function logger(ctx: Koa.Context, next: () => Promise<any>) {
   try {
     await next();
     logData.statusCode = ctx.status;
-  } catch (e) {
+  } catch (e: any) {
     errorThrown = e;
     logData.errorMessage = e.message;
     logData.errorStack = e.stack;
