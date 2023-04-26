@@ -42,7 +42,13 @@ const sizeLimit = process.env.LOKI_SIZE_LIMIT || '25mb';
 
 export const startService = () => {
   db.startDatabase(dbName, () => {
-    const api = createApi({ cors, sizeLimit }) as Koa;
+    const { api } = createApi({ 
+      cors,
+      sizeLimit,
+      compression: true, // Compress data using gzip
+      upload: 'upload',  // Allow uploading data to this folder
+      public: 'public'   // Serve all files in this folder, e.g. SPA
+    }) as Koa;
     api.listen(port);
     console.log(`Server running on port ${port}.`);
   });
@@ -58,6 +64,7 @@ Reads `.env` file for specifying the database name, port, CORS and message size 
 LOKI_PORT=3030
 LOKI_DB="simple.db"
 LOKI_CORS=true
+LOKI_COMPRESSION=true
 LOKI_CONFIG="config.json"
 LOKI_SIZE_LIMIT="250mb"
 LOKI_PRETTY=true
