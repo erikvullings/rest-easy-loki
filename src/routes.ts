@@ -3,11 +3,10 @@ import { applyPatch } from 'rfc6902';
 import IO from 'socket.io';
 import { all, collections, del, get, post, update } from './database';
 import { environment } from './environment';
-import { IMutation } from './models';
-import { ILokiObj } from './models/loki-obj';
+import { IMutation, ILokiObj, Resolver } from './models';
 import { paginationFilter, propertyMap } from './utils';
 
-export const createRouter: (io?: IO.Server) => Router = (io?: IO.Server) => {
+export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?: IO.Server, resolve?: Resolver) => {
   const router = new Router();
 
   router.get('/api/env', async (ctx) => {
@@ -29,20 +28,21 @@ export const createRouter: (io?: IO.Server) => Router = (io?: IO.Server) => {
     const map = propertyMap(ctx.query);
     const filter = paginationFilter(ctx.query);
     const query = ctx.query.q instanceof Array ? ctx.query.q.join('&') : ctx.query.q;
-    const results = all(collection, query);
+    const found = all(collection, query);
+    const results = !resolve || (found && found.length > 0) ? found : await resolve({ query: ctx.query.q });
     ctx.body = map && results ? (filter ? results.filter(filter).map(map) : results.map(map)) : results;
   });
 
   /** Get by ID */
   router.get('/api/:collection/:id', async (ctx) => {
     const { collection, id } = ctx.params;
-    ctx.body = get(collection, +id);
+    ctx.body = get(collection, +id) || (resolve && resolve({ uniqueId: '$loki', id: +id }));
   });
 
   /** Get by unique ID */
   router.get('/api/:collection/:unique/:id', async (ctx) => {
     const { collection, id, unique } = ctx.params;
-    ctx.body = get(collection, id, unique);
+    ctx.body = get(collection, id, unique) || (resolve && resolve({ uniqueId: unique, id }));
   });
 
   /**
