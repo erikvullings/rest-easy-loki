@@ -36,13 +36,13 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
   /** Get by ID */
   router.get('/api/:collection/:id', async (ctx) => {
     const { collection, id } = ctx.params;
-    ctx.body = get(collection, +id) || (resolve && resolve({ uniqueId: '$loki', id: +id }));
+    ctx.body = get(collection, +id) || (resolve && (await resolve({ uniqueId: '$loki', id: +id })));
   });
 
   /** Get by unique ID */
   router.get('/api/:collection/:unique/:id', async (ctx) => {
     const { collection, id, unique } = ctx.params;
-    ctx.body = get(collection, id, unique) || (resolve && resolve({ uniqueId: unique, id }));
+    ctx.body = get(collection, id, unique) || (resolve && (await resolve({ uniqueId: unique, id })));
   });
 
   /**
