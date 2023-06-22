@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import Koa from 'koa';
-import * as path from 'path';
+import { File } from 'formidable';
+import { join } from 'path';
 
 export const uploadService =
   (uploadPath: string) =>
@@ -13,7 +14,7 @@ export const uploadService =
       if (!context) {
         ctx.throw(400, "Missing context! Please use '/upload/:CONTEXT'."); // bad request
       }
-      const tmpdir = path.join(uploadPath, context);
+      const tmpdir = join(uploadPath, context);
       const baseUrl = `/${context}/`;
       fs.mkdir(tmpdir, { recursive: true }, (err) => {
         if (err && err.code !== 'EEXIST') {
@@ -21,20 +22,21 @@ export const uploadService =
           reject('Error creating directory');
           ctx.throw(500, errMsg); // bad request
         }
-        if (ctx && ctx.request && (ctx.request as any).files) {
+        if (ctx && ctx.request && ctx.request.files) {
           const filePaths = [] as string[];
-          const files = (ctx.request as any).files || {};
+          const files = ctx.request.files || {};
           for (const key in files) {
             if (!files.hasOwnProperty(key)) {
               continue;
             }
-            const file = files[key];
-            const filePath = path.join(tmpdir, file.name);
-            const reader = fs.createReadStream(file.path);
+            const file = files[key] as File;
+            const filename = file.originalFilename || file.newFilename;
+            const filePath = join(tmpdir, filename);
+            const reader = fs.createReadStream(file.filepath);
             const stream = fs.createWriteStream(filePath);
             reader.pipe(stream);
-            filePaths.push(baseUrl + file.name);
-            console.log('Uploading %s -> %s', file.name, stream.path);
+            filePaths.push(baseUrl + filename);
+            console.log('Uploading %s -> %s', filename, stream.path);
           }
           ctx.body = filePaths;
           resolve();
