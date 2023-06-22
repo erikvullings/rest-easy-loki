@@ -8,17 +8,9 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "program": "${workspaceFolder}\\src\\cli.ts",
-      "args": [
-        "--upload",
-        "upload",
-        "-i",
-        "--config",
-        "./config.json"
-      ],
-      "outFiles": [
-        "${workspaceFolder}/**/*.js"
-      ],
+      "program": "${workspaceFolder}/src/cli.ts",
+      "args": ["--upload", "upload", "-i", "--config", "./config.json"],
+      "outFiles": ["${workspaceFolder}/**/*.js"],
       "env": {
         "NODE_ENV": "development"
       }
