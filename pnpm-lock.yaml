@@ -6,79 +6,79 @@ settings:
 
 dependencies:
   '@koa/cors':
-    specifier: ^4.0.0
+    specifier: 4.0.0
     version: 4.0.0
   command-line-args:
-    specifier: ^5.2.1
+    specifier: 5.2.1
     version: 5.2.1
   command-line-usage:
-    specifier: ^7.0.1
+    specifier: 7.0.1
     version: 7.0.1
   dotenv:
-    specifier: ^16.3.1
+    specifier: 16.3.1
     version: 16.3.1
   koa:
-    specifier: ^2.14.2
+    specifier: 2.14.2
     version: 2.14.2
   koa-body:
-    specifier: ^6.0.1
+    specifier: 6.0.1
     version: 6.0.1
   koa-compress:
-    specifier: ^5.1.1
+    specifier: 5.1.1
     version: 5.1.1
   koa-router:
-    specifier: ^12.0.0
+    specifier: 12.0.0
     version: 12.0.0
   koa-static:
-    specifier: ^5.0.0
+    specifier: 5.0.0
     version: 5.0.0
   lokijs:
-    specifier: ^1.5.12
+    specifier: 1.5.12
     version: 1.5.12
   rfc6902:
-    specifier: ^5.0.1
+    specifier: 5.0.1
     version: 5.0.1
   socket.io:
-    specifier: ^4.7.0
-    version: 4.7.0
+    specifier: 4.7.1
+    version: 4.7.1
 
 devDependencies:
   '@types/command-line-args':
-    specifier: ^5.2.0
+    specifier: 5.2.0
     version: 5.2.0
   '@types/formidable':
-    specifier: 2.0.6
-    version: 2.0.6
+    specifier: 3.4.0
+    version: 3.4.0
   '@types/koa':
-    specifier: ^2.13.6
+    specifier: 2.13.6
     version: 2.13.6
   '@types/koa-compose':
-    specifier: ^3.2.5
+    specifier: 3.2.5
     version: 3.2.5
   '@types/koa-compress':
-    specifier: ^4.0.3
+    specifier: 4.0.3
     version: 4.0.3
   '@types/koa-router':
-    specifier: ^7.4.4
+    specifier: 7.4.4
     version: 7.4.4
   '@types/koa-static':
-    specifier: ^4.0.2
+    specifier: 4.0.2
     version: 4.0.2
   '@types/lokijs':
-    specifier: ^1.5.8
+    specifier: 1.5.8
     version: 1.5.8
   '@types/node':
-    specifier: ^20.3.1
-    version: 20.3.1
+    specifier: 20.4.4
+    version: 20.4.4
   rimraf:
-    specifier: ^5.0.1
+    specifier: 5.0.1
     version: 5.0.1
   tsc-watch:
-    specifier: ^6.0.4
-    version: 6.0.4(typescript@5.1.3)
+    specifier: 6.0.4
+    version: 6.0.4(typescript@5.1.6)
   typescript:
-    specifier: ^5.1.3
-    version: 5.1.3
+    specifier: 5.1.6
+    version: 5.1.6
 
 packages:
 
@@ -111,18 +111,18 @@ packages:
   /@types/accepts@1.3.5:
     resolution: {integrity: sha512-jOdnI/3qTpHABjM5cx1Hc0sKsPoYCp+DP/GJRGtDlPd7fiV9oXGGIcjW/ZOxLIvjGz8MA+uMZI9metHlgqbgwQ==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
 
   /@types/body-parser@1.19.1:
     resolution: {integrity: sha512-a6bTJ21vFOGIkwM0kzh9Yr89ziVxq4vYH2fQ6N8AeipEzai/cFK6aGMArIkUeIdRIgpwQa+2bXiLuUJCpSf2Cg==}
     dependencies:
       '@types/connect': 3.4.35
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
 
   /@types/co-body@6.1.0:
     resolution: {integrity: sha512-3e0q2jyDAnx/DSZi0z2H0yoZ2wt5yRDZ+P7ymcMObvq0ufWRT4tsajyO+Q1VwVWiv9PRR4W3YEjEzBjeZlhF+w==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
       '@types/qs': 6.9.7
     dev: false
 
@@ -133,7 +133,7 @@ packages:
   /@types/connect@3.4.35:
     resolution: {integrity: sha512-cdeYyv4KWoEgpBISTxWvqYsVy444DOqehiF3fM3ne10AmJ62RSyNkUnxMJXHQWRQQX2eR94m5y1IZyDwBjV9FQ==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
 
   /@types/content-disposition@0.5.4:
     resolution: {integrity: sha512-0mPF08jn9zYI0n0Q/Pnz7C4kThdSt+6LD4amsrYDDpgBfrVWa3TcCOxKX1zkGgYniGagRv8heN2cbh+CAn+uuQ==}
@@ -148,7 +148,7 @@ packages:
       '@types/connect': 3.4.35
       '@types/express': 4.17.13
       '@types/keygrip': 1.0.2
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
 
   /@types/cors@2.8.12:
     resolution: {integrity: sha512-vt+kDhq/M2ayberEtJcIN/hxXy1Pk+59g2FV/ZQceeaTyCtCucjL2Q7FXlFjtWn4n15KCr1NE2lNNFhp0lEThw==}
@@ -157,7 +157,7 @@ packages:
   /@types/express-serve-static-core@4.17.24:
     resolution: {integrity: sha512-3UJuW+Qxhzwjq3xhwXm2onQcFHn76frIYVbTu+kn24LFxI+dEhdfISDFovPB8VpEgW8oQCTpRuCe+0zJxB7NEA==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
       '@types/qs': 6.9.7
       '@types/range-parser': 1.2.4
 
@@ -172,7 +172,14 @@ packages:
   /@types/formidable@2.0.6:
     resolution: {integrity: sha512-L4HcrA05IgQyNYJj6kItuIkXrInJvsXTPC5B1i64FggWKKqSL+4hgt7asiSNva75AoLQjq29oPxFfU4GAQ6Z2w==}
     dependencies:
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
+    dev: false
+
+  /@types/formidable@3.4.0:
+    resolution: {integrity: sha512-JXP+LsspYYBIJJxZ9VJsswb5U1hkUUhLmtAb6EB1SWcDDbJQlWRhGoZYasMSnk2NsqtUEHd3uuaiImmSys+8AQ==}
+    dependencies:
+      '@types/node': 20.4.4
+    dev: true
 
   /@types/http-assert@1.5.1:
     resolution: {integrity: sha512-PGAK759pxyfXE78NbKxyfRcWYA/KwW17X290cNev/qAsn9eQIxkH4shoNBafH37wewhDG/0p1cHPbK6+SzZjWQ==}
@@ -192,7 +199,7 @@ packages:
     resolution: {integrity: sha512-nJSII/tOSvYCwk3yDEBJLHd8ctkt5CQFZ0j8ZBnHZ2x0hg24z9H1i38lWXA/5z0Ix0uitMW1jov+kVbQI1aNPQ==}
     dependencies:
       '@types/koa': 2.13.6
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
     dev: true
 
   /@types/koa-router@7.4.4:
@@ -224,7 +231,7 @@ packages:
       '@types/http-errors': 1.8.1
       '@types/keygrip': 1.0.2
       '@types/koa-compose': 3.2.5
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
 
   /@types/lokijs@1.5.8:
     resolution: {integrity: sha512-HN4vmoYHqF0mx91Cci6xaH1uN1JAMbakqNFXggpbd2L/RTUMrvx//dJTJehEtEF+a/qXfLbVSeO6p3Oegx/hDg==}
@@ -233,8 +240,8 @@ packages:
   /@types/mime@1.3.2:
     resolution: {integrity: sha512-YATxVxgRqNH6nHEIsvg6k2Boc1JHI9ZbH5iWFFv/MTkchz3b1ieGDa5T0a9RznNdI0KhVbdbWSN+KWWrQZRxTw==}
 
-  /@types/node@20.3.1:
-    resolution: {integrity: sha512-EhcH/wvidPy1WeML3TtYFGR83UzjxeWRen9V402T8aUGYsCHOmfoisV3ZSg03gAFIbLq8TnWOJ0f4cALtnSEUg==}
+  /@types/node@20.4.4:
+    resolution: {integrity: sha512-CukZhumInROvLq3+b5gLev+vgpsIqC2D0deQr/yS1WnxvmYLlJXZpaQrQiseMY+6xusl79E04UjWoqyr+t1/Ew==}
 
   /@types/qs@6.9.7:
     resolution: {integrity: sha512-FGa1F62FT09qcrueBA6qYTrJPVDzah9a+493+o2PCXsesWHIn27G98TsSMs3WPNbZIEj4+VJf6saSFpvD+3Zsw==}
@@ -246,7 +253,7 @@ packages:
     resolution: {integrity: sha512-nCkHGI4w7ZgAdNkrEu0bv+4xNV/XDqW+DydknebMOQwkpDGx8G+HTlj7R7ABI8i8nKxVw0wtKPi1D+lPOkh4YQ==}
     dependencies:
       '@types/mime': 1.3.2
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
 
   /accepts@1.3.7:
     resolution: {integrity: sha512-Il80Qs2WjYlJIBNzNkK6KYqlVMTbZLXgHx2oT0pU/fjRHyEp+PEfEPY0R3WCwAGVOtauxh1hOxNgIf5bv7dQpA==}
@@ -348,7 +355,7 @@ packages:
     resolution: {integrity: sha512-m7pOT6CdLN7FuXUcpuz/8lfQ/L77x8SchHCF4G0RBTJO20Wzmhn5Sp4/5WsKy8OSpifBSUrmg83qEqaDHdyFuQ==}
     dependencies:
       inflation: 2.0.0
-      qs: 6.10.1
+      qs: 6.11.1
       raw-body: 2.4.1
       type-is: 1.6.18
     dev: false
@@ -468,7 +475,7 @@ packages:
     dev: false
 
   /depd@1.1.2:
-    resolution: {integrity: sha1-m81S4UwJd2PnSbJ0xDRu0uVgtak=}
+    resolution: {integrity: sha512-7emPTl6Dpo6JRXOXjLRxck+FlLRX5847cLKEn00PLAgc3g2hTZZgr+e4c2v6QpSmLeFP3n5yUo7ft6avBK/5jQ==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -521,7 +528,7 @@ packages:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.12
-      '@types/node': 20.3.1
+      '@types/node': 20.4.4
       accepts: 1.3.7
       base64id: 2.0.0
       cookie: 0.4.1
@@ -639,7 +646,7 @@ packages:
     dev: false
 
   /http-errors@1.6.3:
-    resolution: {integrity: sha1-i1VoC7S+KDoLW/TqLjhYC+HZMg0=}
+    resolution: {integrity: sha512-lks+lVC8dgGyh97jxvxeYTWQFvh4uw4yC12gVl63Cg30sjPX4wuGcdkICVXDAESr6OJGjqGA8Iz5mkeN6zlD7A==}
     engines: {node: '>= 0.6'}
     dependencies:
       depd: 1.1.2
@@ -655,17 +662,6 @@ packages:
       depd: 1.1.2
       inherits: 2.0.4
       setprototypeof: 1.1.1
-      statuses: 1.5.0
-      toidentifier: 1.0.0
-    dev: false
-
-  /http-errors@1.8.0:
-    resolution: {integrity: sha512-4I8r0C5JDhT5VkvI47QktDW75rNlGVsUf/8hzjCC/wkWI/jdTRmBb9aI7erSG82r1bjKY3F6k28WnsVxB1C73A==}
-    engines: {node: '>= 0.6'}
-    dependencies:
-      depd: 1.1.2
-      inherits: 2.0.4
-      setprototypeof: 1.2.0
       statuses: 1.5.0
       toidentifier: 1.0.0
     dev: false
@@ -705,7 +701,7 @@ packages:
     dev: false
 
   /inherits@2.0.3:
-    resolution: {integrity: sha1-Yzwsg+PaQqUC9SRmAiSA9CCCYd4=}
+    resolution: {integrity: sha512-x00IRNXNy63jwGkJmzPigoySHbaqpNuzKbBOmzK+g2OdZpQ9w+sxCN+VSB3ja7IAge2OP2qpfxTjeNcyjmW1uw==}
     dev: false
 
   /inherits@2.0.4:
@@ -794,7 +790,7 @@ packages:
     engines: {node: '>= 8'}
     dependencies:
       debug: 4.3.2
-      http-errors: 1.8.0
+      http-errors: 1.8.1
       resolve-path: 1.4.0
     transitivePeerDependencies:
       - supports-color
@@ -827,7 +823,7 @@ packages:
       escape-html: 1.0.3
       fresh: 0.5.2
       http-assert: 1.4.1
-      http-errors: 1.8.0
+      http-errors: 1.8.1
       is-generator-function: 1.0.9
       koa-compose: 4.1.0
       koa-convert: 2.0.0
@@ -846,7 +842,7 @@ packages:
     dev: false
 
   /lodash.camelcase@4.3.0:
-    resolution: {integrity: sha1-soqmKIorn8ZRA1x3EfZathkDMaY=}
+    resolution: {integrity: sha512-TwuEnCnxbc3rAvhf/LbG7tJUDzhqXyFnv3dtzLOPgCG/hODL7WFnsbwktkD7yUV0RrreP/l1PALq/YSg6VvjlA==}
     dev: false
 
   /lokijs@1.5.12:
@@ -945,7 +941,7 @@ packages:
     dev: false
 
   /path-is-absolute@1.0.1:
-    resolution: {integrity: sha1-F0uSaHNVNP+8es5r9TpanhtcX18=}
+    resolution: {integrity: sha512-AVbw3UJ2e9bq64vSaS9Am0fje1Pa8pbGqTTsmXfaIiMpnr5DlDhfJOuLj9Sf95ZPVDAUerDfEk88MPmPe7UCQg==}
     engines: {node: '>=0.10.0'}
     dev: false
 
@@ -980,13 +976,6 @@ packages:
       event-stream: 3.3.4
     dev: true
 
-  /qs@6.10.1:
-    resolution: {integrity: sha512-M528Hph6wsSVOBiYUnGf+K/7w0hNshs/duGsNXPUCLH5XAqjEtiPGwNONLV0tBH8NoGb0mvD5JubnUTrujKDTg==}
-    engines: {node: '>=0.6'}
-    dependencies:
-      side-channel: 1.0.4
-    dev: false
-
   /qs@6.11.1:
     resolution: {integrity: sha512-0wsrzgTz/kAVIeuxSjnpGC56rzYtr6JT/2BwEvMaPhFIoYa1aGO8LbzuU1R0uUYQkLpWBTOj0l/CLAJB64J6nQ==}
     engines: {node: '>=0.6'}
@@ -1005,7 +994,7 @@ packages:
     dev: false
 
   /resolve-path@1.4.0:
-    resolution: {integrity: sha1-xL2p9e+y/OZSR4c6s2u02DT+Fvc=}
+    resolution: {integrity: sha512-i1xevIst/Qa+nA9olDxLWnLk8YZbi8R/7JPbCMcgyWaFR6bKWaexgJgEB5oc2PKMjYdrHynyz0NY+if+H98t1w==}
     engines: {node: '>= 0.8'}
     dependencies:
       http-errors: 1.6.3
@@ -1088,8 +1077,8 @@ packages:
       - supports-color
     dev: false
 
-  /socket.io@4.7.0:
-    resolution: {integrity: sha512-eOpu7oCNiPGBHn9Falg0cAGivp6TpDI3Yt596fbsf+vln8kRLFWxXKrecFrybn/xNYVn9HcdJNAkYToCmTjsyg==}
+  /socket.io@4.7.1:
+    resolution: {integrity: sha512-W+utHys2w//dhFjy7iQQu9sGd3eokCjGbl2r59tyLqNiJJBdIebn3GAKEXBr3osqHTObJi2die/25bCx2zsaaw==}
     engines: {node: '>=10.0.0'}
     dependencies:
       accepts: 1.3.7
@@ -1112,7 +1101,7 @@ packages:
     dev: true
 
   /statuses@1.5.0:
-    resolution: {integrity: sha1-Fhx9rBd2Wf2YEfQ3cfqZOBR4Yow=}
+    resolution: {integrity: sha512-OpZ3zP+jT1PI7I8nemJX4AKmAX070ZkYPVWV/AaKTJl+tXCTGyVdC1a4SL8RUQYEwk/f34ZX8UTykN68FwrqAA==}
     engines: {node: '>= 0.6'}
     dev: false
 
@@ -1188,7 +1177,7 @@ packages:
     engines: {node: '>=0.6'}
     dev: false
 
-  /tsc-watch@6.0.4(typescript@5.1.3):
+  /tsc-watch@6.0.4(typescript@5.1.6):
     resolution: {integrity: sha512-cHvbvhjO86w2aGlaHgSCeQRl+Aqw6X6XN4sQMPZKF88GoP30O+oTuh5lRIJr5pgFWrRpF1AgXnJJ2DoFEIPHyg==}
     engines: {node: '>=12.12.0'}
     hasBin: true
@@ -1199,7 +1188,7 @@ packages:
       node-cleanup: 2.1.2
       ps-tree: 1.2.0
       string-argv: 0.3.1
-      typescript: 5.1.3
+      typescript: 5.1.6
     dev: true
 
   /tsscmp@1.0.6:
@@ -1215,8 +1204,8 @@ packages:
       mime-types: 2.1.31
     dev: false
 
-  /typescript@5.1.3:
-    resolution: {integrity: sha512-XH627E9vkeqhlZFQuL+UsyAXEnibT0kWR2FWONlr4sTjvxyJYnyefgrkyECLzM5NenmKzRAy2rR/OlYLA1HkZw==}
+  /typescript@5.1.6:
+    resolution: {integrity: sha512-zaWCozRZ6DLEWAWFrVDz1H6FVXzUSfTy5FUMWsQlU8Ym5JP9eO4xkTIROFCQvhQf61z6O/G6ugw3SgAnvvm+HA==}
     engines: {node: '>=14.17'}
     hasBin: true
     dev: true

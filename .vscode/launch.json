@@ -14,6 +14,20 @@
       "env": {
         "NODE_ENV": "development"
       }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch env",
+      "program": "${workspaceFolder}/src/cli.ts",
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "env": {
+        "NODE_ENV": "development",
+        "LOKI_PRETTY": "true",
+        "LOKI_PORT": "3000",
+        "LOKI_DB": "./db/db/l3crisis.db",
+        "LOKI_CORS": "true"
+      }
     }
   ]
 }

@@ -62,7 +62,7 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
     const item = ctx.request.body;
     ctx.body = post(collection, item);
     if (io) {
-      setTimeout(() => io.emit(collection, ctx.body), 0);
+      setTimeout(() => io.emit(collection, item), 0);
     }
   });
 
@@ -74,7 +74,7 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
     }
     ctx.body = update(collection, item);
     if (io) {
-      setTimeout(() => io.emit(`${collection}/${id}`, ctx.body), 0);
+      setTimeout(() => io.emit(`${collection}/${id}`, item), 0);
     }
   });
 
@@ -98,7 +98,7 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
           }
           ctx.body = update(collection, item);
           if (io) {
-            setTimeout(() => io.emit(`${collection}/${id}`, ctx.body), 0);
+            setTimeout(() => io.emit(`${collection}/${id}`, item), 0);
           }
         }
       }
@@ -110,7 +110,7 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
     const item = ctx.request.body;
     ctx.body = update(collection, item);
     if (io && item.id) {
-      setTimeout(() => io.emit(`${collection}/${item.id}`, ctx.body), 0);
+      setTimeout(() => io.emit(`${collection}/${item.id}`, item), 0);
     }
   });
 
