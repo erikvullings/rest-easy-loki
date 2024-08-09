@@ -1,7 +1,15 @@
 import * as Koa from 'koa';
+import * as jose from 'jose';
 
 const getApiKeys = () => {
   return {
+    jwtShared: process.env.LOKI_AUTHZ_JWT_SHARED
+      ? new TextEncoder().encode(process.env.LOKI_AUTHZ_JWT_SHARED)
+      : undefined,
+    jwtJwks: process.env.LOKI_AUTHZ_JWT_JWKS
+      ? jose.createRemoteJWKSet(new URL(process.env.LOKI_AUTHZ_JWT_JWKS))
+      : undefined,
+    jwtAnonymousRead: process.env.LOKI_AUTHZ_JWT_ANONYMOUS_READ != undefined ? true : false,
     whitelist: process.env.LOKI_AUTHZ_WHITELIST
       ? process.env.LOKI_AUTHZ_WHITELIST.toUpperCase()
           .split(',')
@@ -28,6 +36,12 @@ const getApiKeys = () => {
           .map((x) => x.trim())
       : [],
   } as {
+    /** The JWT shared key */
+    jwtShared: Uint8Array | undefined;
+    /** The JWKS instance */
+    jwtJwks: jose.JWTVerifyGetKey | undefined;
+    /** Whether to allow read without valid JWT. */
+    jwtAnonymousRead: boolean;
     /** Domain names that are white listed */
     whitelist: string[];
     /** API keys that allow CREATE operations */
@@ -52,7 +66,17 @@ const retreiveApiKey = (ctx: Koa.Context): string | undefined => {
   return apiKey ? apiKey.toUpperCase() : undefined;
 };
 
-const dp = (keys: string[], apiKey: string | undefined, ctx: Koa.Context) => {
+/** Check for a bearer key in the Authorization header */
+const retrieveBearerToken = (ctx: Koa.Context): string | undefined => {
+  const authorizationHeader = ctx.get('authorization');
+
+  const parts = authorizationHeader.trim().split(' ');
+  if (parts.length !== 2) return undefined;
+  if (parts[0] != 'Bearer') return undefined;
+  return parts[1];
+}
+
+const dp = (keys: string[], apiKey: string | undefined, ctx: Koa.Context): boolean => {
   if (keys.length === 0) {
     return true;
   }
@@ -67,13 +91,61 @@ const dp = (keys: string[], apiKey: string | undefined, ctx: Koa.Context) => {
   return true;
 };
 
+const jdp = (roles: string[], role: string, ctx: Koa.Context): boolean => {
+  if (!roles.includes(role)) {
+    ctx.status = 403; // Forbidden
+    return false;
+  }
+
+  return true;
+};
+
 /** Policy decision point, decides whether the requested action is allowed. */
-const pdp = (ctx: Koa.Context): boolean => {
+const pdp = async (ctx: Koa.Context): Promise<boolean> => {
+  if (apiKeys.jwtShared !== undefined || apiKeys.jwtJwks !== undefined) {
+    if (apiKeys.jwtAnonymousRead && ctx.request.method.toUpperCase() === 'GET') {
+      return true;
+    }
+
+    const bearerToken = retrieveBearerToken(ctx);
+
+    if (bearerToken === undefined) {
+      ctx.body = 'Authorization header doesn\'t contain a JWT token';
+      ctx.status = 401; // Unauthenticated
+      return false;
+    }
+
+    let roles: string[] = [];
+
+    try {
+      if (apiKeys.jwtShared !== undefined) {
+        const { payload } = await jose.jwtVerify(bearerToken, apiKeys.jwtShared);
+        roles = (payload.realm_access as any).roles as string[] ?? [];
+      } else if (apiKeys.jwtJwks !== undefined) {
+        const { payload } = await jose.jwtVerify(bearerToken, apiKeys.jwtJwks);
+        roles = (payload.realm_access as any).roles as string[] ?? [];
+      }
+    } catch {
+      ctx.body = 'Authorization header doesn\'t contain a valid JWT token';
+      ctx.status = 401; // Unauthenticated
+      return false;
+    }
+
+    switch (ctx.request.method.toUpperCase()) {
+      case 'GET':
+        return true; // If the JWT is valid, reading is allowed.
+      case 'POST':
+        return jdp(roles, "editor", ctx);
+      case 'DELETE':
+        return jdp(roles, "editor", ctx);
+      default:
+        return jdp(roles, "editor", ctx); // put or patch
+    }
+  }
+
   // Whitelisted
   if (apiKeys.whitelist.length > 0) {
-    // console.table(apiKeys);
     const hostname = ctx.hostname && ctx.hostname.toUpperCase();
-    console.log(hostname);
     if (hostname && apiKeys.whitelist.includes(hostname)) {
       return true;
     }
@@ -95,7 +167,7 @@ const pdp = (ctx: Koa.Context): boolean => {
 
 /** Simple Policy Enforcement Point */
 export const pep = async (ctx: Koa.Context, next: () => Promise<any>) => {
-  const allowed = pdp(ctx);
+  const allowed = await pdp(ctx);
   // console.log('Allowed: ' + allowed);
   if (allowed) {
     // Use await next. See here: https://github.com/ZijianHe/koa-router/issues/358
