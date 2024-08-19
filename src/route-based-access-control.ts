@@ -1,8 +1,10 @@
 import { JWTPayload } from 'jose';
+import { ParsedUrlQuery } from 'querystring';
 
 export interface PolicyRule {
   method: string;
   path: string;
+  query?: ParsedUrlQuery | { [key: string]: RegExp };
   abac?: { [key: string]: any };
 }
 
@@ -10,25 +12,52 @@ export interface AccessControlOptions {
   enableLogging?: boolean;
 }
 
-export type PolicyEvaluator = (method: string, path: string, jwtPayload: JWTPayload) => boolean;
+export type PolicyEvaluator = (method: string, path: string, query: ParsedUrlQuery, jwtPayload: JWTPayload) => boolean;
 
-export const createRouteBasedAccessControl = (policyFile?: PolicyRule[], options: AccessControlOptions = {}) => {
+export const createRouteBasedAccessControl = (
+  policyFile?: PolicyRule[],
+  options: AccessControlOptions = {},
+): PolicyEvaluator => {
   interface CompiledRule extends PolicyRule {
     regex: RegExp;
-    placeholders: string[];
+    query?: { [key: string]: RegExp };
+    pathPlaceholders: string[];
+    queryPlaceholders: { [key: string]: string[] };
   }
 
+  const canonicalizeQueryValue = (value: string | string[] = '') =>
+    value.toString().replace(/"/g, "'").replace(/ /g, '');
+
   const policy: CompiledRule[] = (policyFile || []).map((rule) => {
-    const placeholders: string[] = [];
-    // const regexPath = encodeURIComponent(rule.path)
-    const regexPath = rule.path.replace(/\*/g, '.*').replace(/:([^%]+)/g, (_, placeholder) => {
-      placeholders.push(placeholder);
+    const pathPlaceholders: string[] = [];
+    const regexPath = rule.path.replace(/\*/g, '.*').replace(/:([^/]+)/g, (_, placeholder) => {
+      pathPlaceholders.push(placeholder);
       return '([^/]+)';
     });
+
+    const queryPlaceholders: { [key: string]: string[] } = {};
+    const compiledQuery = rule.query
+      ? Object.fromEntries(
+          Object.entries(rule.query).map(([key, value = '']) => {
+            const placeholders: string[] = [];
+            const compiledValue = canonicalizeQueryValue(value.toString())
+              .replace(/\$/g, '\\$')
+              .replace(/:([a-zA-Z][a-zA-Z\d]+)/g, (_, placeholder) => {
+                placeholders.push(placeholder);
+                return '([^&]+)';
+              });
+            queryPlaceholders[key] = placeholders;
+            return [key, new RegExp(`^${compiledValue}$`)];
+          }),
+        )
+      : undefined;
+
     return {
       ...rule,
       regex: new RegExp(`^${regexPath}$`, 'i'),
-      placeholders,
+      pathPlaceholders,
+      queryPlaceholders,
+      query: compiledQuery,
     };
   });
 
@@ -47,26 +76,47 @@ export const createRouteBasedAccessControl = (policyFile?: PolicyRule[], options
     }
   };
 
-  const printRule = ({ method, path, abac }: CompiledRule) => JSON.stringify({ method, path, abac });
+  const printRule = ({ method, path, query, abac }: CompiledRule) => JSON.stringify({ method, path, query, abac });
 
-  return (method: string, path: string, jwtPayload: JWTPayload): boolean => {
-    // const encodedPath = encodeURIComponent(path);
+  return (method: string, path: string, query: ParsedUrlQuery, jwtPayload: JWTPayload): boolean => {
     for (const rule of policy) {
       if (rule.method.toLowerCase() === method.toLowerCase()) {
-        const match = path.match(rule.regex);
-        // const match = encodedPath.match(rule.regex);
-        if (match) {
-          // Check placeholders
-          const placeholderValues = match.slice(1);
-          const placeholderCheck = rule.placeholders.every((placeholder, index) => {
-            return checkProperty(jwtPayload, placeholder, decodeURIComponent(placeholderValues[index]));
+        const pathMatch = path.match(rule.regex);
+        if (pathMatch) {
+          // Check path placeholders
+          const pathPlaceholderValues = pathMatch.slice(1);
+          const pathPlaceholderCheck = rule.pathPlaceholders.every((placeholder, index) => {
+            return checkProperty(jwtPayload, placeholder, pathPlaceholderValues[index]);
           });
 
-          if (!placeholderCheck) {
+          if (!pathPlaceholderCheck) {
             if (options.enableLogging) {
-              console.log('Access denied: Placeholder check failed for rule:', printRule(rule));
+              console.log('Access denied: Path placeholder check failed for rule:', printRule(rule));
             }
             continue;
+          }
+
+          // Check query parameters
+          if (rule.query) {
+            const queryCheck = Object.entries(rule.query).every(([key, value]) => {
+              if (!(key in query)) return false;
+              const canonicalQueryValue = canonicalizeQueryValue(query[key]);
+              const valueMatch = canonicalQueryValue.match(value);
+              if (!valueMatch) return false;
+
+              // Check query placeholders
+              const queryPlaceholderValues = valueMatch.slice(1);
+              return rule.queryPlaceholders[key].every((placeholder, index) => {
+                return checkProperty(jwtPayload, placeholder, queryPlaceholderValues[index]);
+              });
+            });
+
+            if (!queryCheck) {
+              if (options.enableLogging) {
+                console.log('Access denied: Query parameter check failed for rule:', printRule(rule));
+              }
+              continue;
+            }
           }
 
           // Check ABAC rules
