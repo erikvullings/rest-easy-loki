@@ -1,0 +1,37 @@
+{
+  "$schema": "./rule-policy-schema.json",
+  "rules": [
+    {
+      "method": "GET",
+      "path": "/api/users/:sub"
+    },
+    {
+      "method": "GET",
+      "path": "/api/users/*",
+      "abac": {
+        "roles": "admin"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cases",
+      "abac": {
+        "roles": "admin"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cases",
+      "query": {
+        "q": "{ 'members' : { '$contains' : ':sub' } }"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/users",
+      "abac": {
+        "roles": "admin"
+      }
+    }
+  ]
+}

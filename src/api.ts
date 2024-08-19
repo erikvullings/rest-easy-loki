@@ -69,7 +69,7 @@ export const createApi = (
     console.log('Enabled serving files from ' + publicPath);
     api.use(serve(publicPath));
   }
-  api.use(pep);
+  api.use(pep(config.policies, { enableLogging: config.pretty }));
   // Allow uploading files to 'config.upload' folder. Files can be uploaded to /upload/:CONTEXT.
   if (config.upload) {
     const uploadPath = path.resolve(process.cwd(), config.upload);

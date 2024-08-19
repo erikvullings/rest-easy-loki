@@ -1,0 +1,15 @@
+meta {
+  name: Get users (role=admin, Allow)
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:3000/api/users/123
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE3MjM5MDk3NzYsImV4cCI6MTc1NTQ0NTc3NiwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoiMTIzIiwiR2l2ZW5OYW1lIjoiSm9obm55IiwiU3VybmFtZSI6IlJvY2tldCIsIkVtYWlsIjoianJvY2tldEBleGFtcGxlLmNvbSIsInJvbGVzIjoiYWRtaW4ifQ.RgVnuKjheUPY4To77VutRvE1vB54Y-d2ox5g7WObicE
+}
