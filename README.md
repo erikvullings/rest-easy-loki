@@ -235,15 +235,23 @@ When using JWT or JWKS authorization, you can specify route based access control
   ]
 }
 ```
+### Explanation
 
-Creating policies is simple:
+Currently, there are two main open source libraries for access control, both used by Amazon Web Services and others: [Open Policy Agent](https://www.openpolicyagent.org/) (OPA) and [Cedar](https://github.com/permitio/cedar-agent). See the comparison [here](https://www.styra.com/knowledge-center/opa-vs-cedar-aws-verified-permissions/). Although the former is more general, and also used to control access to all kinds of micro-services, it has a steeper learning curve. Cedar is more to the point, and focusses on Role-based Access Control (RBAC) or Attribute-based Access Control (ABAC) with a subject, action and resource. However, both suffer from one major drawback, namely using attributes from the resource to determine access. 
+
+Consider the following example: you allow a user to create case files. In each case file, the user specifies other users that have access too. Let's assume the database holds a collection of case files (rows or objects in my database), and each case contains a `members` array with the user IDs of the users that have access. When users queries the server for their case files, the authorization function (the Policy Decision Point or PEP) would need to know the attributes of each case file to determine whether that user has access, i.e. is the user's ID part of the case file's `members` property. However, this would mean that the server first needs to query the database to get access to all case files, potentially thousands, and next the authorization service would need to verify each of them. Clearly, this does not scale, so the common solution is called [partial evaluation](https://blog.openpolicyagent.org/partial-evaluation-162750eaf422), where the authorization service only verifies the attributes of the subject and the action, but skips the verification of the resource attributes. In case access is partially granted, the resource attributes that are not are converted to a SQL or other database query, which is subsequently executed. As the latter step is not trivial, and open to security issues, this repository has chosen a different approach which is coined Route-based Access Control (RouBAC).
+
+How does RouBAC work: you create a policy file, a JSON object that contains a list of rules (see the example below). Each rule is evaluated until a rule allows access, or all rules are processed, in which case access is denied. 
+
+How does the rule evaluation work:
 
 - By default, access is denied, unless a rule allows it.
 - Each rule is checked against the method, path, and query parameters. If there is a match, the query is allowed and no other rules are checked.
 - A rule matches if:
-  - The rule's placeholders, like `:sub`, are present in the user's JWT payload, e.g. the first rule only allows access to `/users/123` if the payload contains a property `sub` whose value is 123 (using strict checking).
-  - If present, the canonical form (no spaces, single quotes, escaped $, but still case-sensitive) of the query parameters are matched against the rule's query parameters.
-  - The rule's `abac` object, if present, is checked against the user's JWT payload, so the second rule only allows access to `GET /users` if the payload contains a property `roles` whose value is `admin`. In case `roles` is an array, the rule is allowed if the rule's role is a subset of the user's roles. Note that the role only allows a single string, so if the `editor` role has access too, a new rule is needed.
+  - The method and path match.
+  - The rule's path placeholders, like `:sub`, are present in the user's JWT payload, e.g. the first rule only allows access to `/users/123` if the payload contains a property `sub` whose value is 123 (using strict checking).
+  - If present, the canonical form (no spaces, single quotes, escaped $, but still case-sensitive) of the query parameters are matched against the rule's query parameters. They may contain placeholders too. Additional query properties are ignored.
+  - The rule's `abac` object, if present, is checked against the user's JWT payload, so the second rule only allows access to `GET /users` if the payload contains a property `roles` whose value is `admin`. In case `roles` is an array, access is permitted only if the rule's role is a subset of the user's roles. Note that the role only allows a single string, so if the `editor` role has access too, a new rule is needed.
   - Support for nested properties is added too, so `realm_access.roles` would also work.
 
 You can use [Bruno](https://www.usebruno.com) to test a few policies that are found in the `test-rest-easy-loki` folder.

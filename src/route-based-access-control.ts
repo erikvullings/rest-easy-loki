@@ -5,7 +5,7 @@ export interface PolicyRule {
   method: string;
   path: string;
   query?: ParsedUrlQuery | { [key: string]: RegExp };
-  abac?: { [key: string]: any };
+  abac?: { [key: string]: string };
 }
 
 export interface AccessControlOptions {

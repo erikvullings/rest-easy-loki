@@ -1,0 +1,19 @@
+meta {
+  name: Get cases for user with email (Allow)
+  type: http
+  seq: 7
+}
+
+get {
+  url: http://localhost:3000/api/cases?q={ 'members' : { '$contains' :'123'}}
+  body: none
+  auth: bearer
+}
+
+params:query {
+  q: { 'members' : { '$contains' :'123'}}
+}
+
+auth:bearer {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLCJpYXQiOjE3MjM5MDk3NzYsImV4cCI6MTc1NTQ0NTc3NiwiYXVkIjoid3d3LmV4YW1wbGUuY29tIiwic3ViIjoiMTIzIiwiR2l2ZW5OYW1lIjoiSm9obm55IiwiU3VybmFtZSI6IlJvY2tldCIsIkVtYWlsIjoianJvY2tldEBleGFtcGxlLmNvbSJ9.82Xsbe4-zy8yAy1pAvJdfGCPolBx68rLtLy1gOamk-4
+}
