@@ -19,6 +19,8 @@ export interface ICommandOptions {
   sizeLimit?: string;
   /** Read the configuration file to configure the database */
   config?: string;
+  /** Read the policies file to configure route-based access control */
+  policies?: string;
   /** If true, use zip compression for the messages */
   compression?: boolean;
 }

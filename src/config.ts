@@ -14,13 +14,15 @@ export const config = {
   /** Allow CORS */
   cors: typeof process.env.LOKI_CORS !== 'undefined' ? process.env.LOKI_CORS : true,
   /** Enable socket.io */
-  io: typeof process.env.LOKI_IO !== 'undefined' ? process.env.LOKI_IO : true,
+  io: typeof process.env.LOKI_IO !== 'undefined' ? process.env.LOKI_IO.toLowerCase() === 'true' : false,
   /** Name of the database file in the DB folder */
   db: process.env.LOKI_DB || 'rest_easy_loki.db',
   /** Size limit of the database */
   sizeLimit: process.env.LOKI_SIZE_LIMIT || '250mb',
   /** Read the configuration file to configure the database */
   config: process.env.LOKI_CONFIG,
+  /** Read the policies file to configure route-based access control */
+  policies: process.env.LOKI_POLICIES,
   /** Use compression */
   compression: typeof process.env.LOKI_COMPRESSION !== 'undefined' ? process.env.LOKI_COMPRESSION : true,
 } as ICommandOptions;

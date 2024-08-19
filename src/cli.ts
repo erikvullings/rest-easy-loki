@@ -57,6 +57,13 @@ export class CommandLineInterface {
       description: `Name of configuration file to configure the DB ($LOKI_CONFIG).`,
     },
     {
+      name: 'policies',
+      defaultValue: config.policies,
+      type: String,
+      typeLabel: 'String',
+      description: `Name of rule policy file to specify the route-based access control policy ($LOKI_POLICIES).`,
+    },
+    {
       name: 'io',
       alias: 'i',
       type: Boolean,

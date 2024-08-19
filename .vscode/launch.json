@@ -9,8 +9,16 @@
       "request": "launch",
       "name": "Launch Program",
       "program": "${workspaceFolder}/src/cli.ts",
-      "args": ["--upload", "upload", "-i", "--config", "./config.json"],
-      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "args": [
+        "--upload",
+        "upload",
+        "-i",
+        "--config",
+        "./config.json"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/**/*.js"
+      ],
       "env": {
         "NODE_ENV": "development"
       }
@@ -20,13 +28,17 @@
       "request": "launch",
       "name": "Launch env",
       "program": "${workspaceFolder}/src/cli.ts",
-      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "outFiles": [
+        "${workspaceFolder}/**/*.js"
+      ],
       "env": {
         "NODE_ENV": "development",
         "LOKI_PRETTY": "true",
         "LOKI_PORT": "3000",
-        "LOKI_DB": "./db/db/l3crisis.db",
-        "LOKI_CORS": "true"
+        "LOKI_DB": "./db/temp.db",
+        "LOKI_CORS": "true",
+        "LOKI_IO": "false",
+        "LOKI_AUTHZ_JWT_SHARED": "my_shared_secret"
       }
     }
   ]
