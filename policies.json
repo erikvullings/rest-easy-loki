@@ -23,7 +23,7 @@
       "method": "GET",
       "path": "/api/cases",
       "query": {
-        "q": "{ 'members' : { '$contains' : ':sub' } }"
+        "q": "{ 'members': { '$contains': ':sub' } }"
       }
     },
     {

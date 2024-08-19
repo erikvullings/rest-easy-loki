@@ -115,8 +115,8 @@ const pdpFactory = (policyFile?: string, options?: AccessControlOptions) => {
           ? await jwtVerify(bearerToken, jwtJwks)
           : { payload: {} as { [key: string]: any } };
         // roles = payload.roles ?? payload.realm_access?.roles ?? [];
-        const requestPath = ctx.request.path;
-        return policies(requestMethod, requestPath, payload);
+        const { path: requestPath, query } = ctx.request;
+        return policies(requestMethod, requestPath, query, payload);
       } catch {
         // ctx.body = "Authorization header doesn't contain a valid JWT token";
         // ctx.status = 401; // Unauthenticated
