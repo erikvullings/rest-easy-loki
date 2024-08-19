@@ -197,32 +197,53 @@ If the `editor` role is in there, access is granted to write to the database.
 When using JWT or JWKS authorization, you can specify route based access control. In that case, the `LOKI_POLICIES` should be set to a JSON file with the following structure (as specified in the `rule-policy-schema.json` file):
 
 ```json
-[
-  {
-    "method": "GET",
-    "path": "/users/:sub",
-  },
-  {
-    "method": "GET",
-    "path": "/users/*",
-    "abac": {
-      "realm_access.roles": "admin"
+{
+  "$schema": "./rule-policy-schema.json",
+  "rules": [
+    {
+      "method": "GET",
+      "path": "/api/users/:sub"
+    },
+    {
+      "method": "GET",
+      "path": "/api/users/*",
+      "abac": {
+        "roles": "admin"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cases",
+      "abac": {
+        "roles": "admin"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/users",
+      "abac": {
+        "roles": "admin"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/cases",
+      "query": {
+        "q": "{ 'members': { '$contains': ':sub' } }"
+      }
     }
-  },
-  {
-    "method": "POST",
-    "path": "/users",
-    "abac": {
-      "roles": "admin"
-    }
-  }
-]
+  ]
+}
 ```
 
 Creating policies is simple:
 
 - By default, access is denied, unless a rule allows it.
-- Each rule is checked against the path and method.
-- If a rule matches:
-  - the rule's placeholders are verified against the user's JWT payload, e.g. the first rule only allows access to `/users/123` if the payload contains a property `sub` whose value is 123 (using strict checking).
-  - the rule's `abac` object, if present, is checked against the user's JWT payload, so the second rule only allows access to `GET /users` if the payload contains a property `realm_access.roles` whose value is `admin`. In case `realm_access.roles` is an array, the rule is allowed if the rule's roles are a subset of the user's roles.
+- Each rule is checked against the method, path, and query parameters. If there is a match, the query is allowed and no other rules are checked.
+- A rule matches if:
+  - The rule's placeholders, like `:sub`, are present in the user's JWT payload, e.g. the first rule only allows access to `/users/123` if the payload contains a property `sub` whose value is 123 (using strict checking).
+  - If present, the canonical form (no spaces, single quotes, escaped $, but still case-sensitive) of the query parameters are matched against the rule's query parameters.
+  - The rule's `abac` object, if present, is checked against the user's JWT payload, so the second rule only allows access to `GET /users` if the payload contains a property `roles` whose value is `admin`. In case `roles` is an array, the rule is allowed if the rule's role is a subset of the user's roles. Note that the role only allows a single string, so if the `editor` role has access too, a new rule is needed.
+  - Support for nested properties is added too, so `realm_access.roles` would also work.
+
+You can use [Bruno](https://www.usebruno.com) to test a few policies that are found in the `test-rest-easy-loki` folder.
