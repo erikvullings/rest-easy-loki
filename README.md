@@ -69,7 +69,7 @@ LOKI_CONFIG="config.json"
 LOKI_POLICIES="policies.json"
 LOKI_SIZE_LIMIT="250mb"
 LOKI_PRETTY=true
-LOKI_DEBUG=true
+LOKI_DEBUG=false
 LOKI_AUTHZ_JWT_SHARED=""
 LOKI_AUTHZ_JWT_JWKS=""
 LOKI_AUTHZ_READ=""
@@ -259,7 +259,7 @@ You can use [Bruno](https://www.usebruno.com) to test a few policies that are fo
 
 #### Usage notes regarding policies, authn/authz, and syntax
 
-A general 403 error will be thrown if the ```Authorization``` header is missing or malformed, and when a token is expired or incorrectly signed. 
+A general 401 error will be thrown if the ```Authorization``` header is missing or malformed, and when a token is expired or incorrectly signed. 
 In other words, `rest-easy-loki` will not tell you what is wrong exactly.
 In a similar vein, no feedback is given about the specific reason why a request does not match any policy rule.
 This means that you should critically review your requests and policy file for formatting, especially regarding the use of whitespace, quotation marks, and regex.
