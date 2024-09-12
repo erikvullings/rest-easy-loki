@@ -26,5 +26,5 @@ export const config = {
   /** Use compression */
   compression: typeof process.env.LOKI_COMPRESSION !== 'undefined' ? process.env.LOKI_COMPRESSION : true,
   /** Enable verbose debug logging */
-  debug: typeof process.env.LOKI_DEBUG !== 'undefined' ? process.env.LOKI_DEBUG : true,
+  debug: typeof process.env.LOKI_DEBUG !== 'undefined' ? process.env.LOKI_DEBUG.toLowerCase() === 'true' : false,
 } as ICommandOptions;
