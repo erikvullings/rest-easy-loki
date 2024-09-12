@@ -69,6 +69,7 @@ LOKI_CONFIG="config.json"
 LOKI_POLICIES="policies.json"
 LOKI_SIZE_LIMIT="250mb"
 LOKI_PRETTY=true
+LOKI_DEBUG=true
 LOKI_AUTHZ_JWT_SHARED=""
 LOKI_AUTHZ_JWT_JWKS=""
 LOKI_AUTHZ_READ=""
@@ -255,3 +256,31 @@ How does the rule evaluation work:
   - Support for nested properties is added too, so `realm_access.roles` would also work.
 
 You can use [Bruno](https://www.usebruno.com) to test a few policies that are found in the `test-rest-easy-loki` folder.
+
+#### Usage notes regarding policies, authn/authz, and syntax
+
+A general 403 error will be thrown if the ```Authorization``` header is missing or malformed, and when a token is expired or incorrectly signed. 
+In other words, `rest-easy-loki` will not tell you what is wrong exactly.
+In a similar vein, no feedback is given about the specific reason why a request does not match any policy rule.
+This means that you should critically review your requests and policy file for formatting, especially regarding the use of whitespace, quotation marks, and regex.
+Also, make sure that any used JWT properties are present and correct if you use placeholders.
+
+For example, the following GET request:
+
+```
+https://example.org/api/answers?q={%22case%22:%2242%22,%22editor%22:%22someuser@somedomain.org%22,%20%22allowed%22:%20{%20%22$contains%22:%20%22someotheruser@somedomain.org%22}}
+```
+
+would satisfy the below policy rule (if the signed JWT contains a property ```email``` with value ```someotheruser@somedomain.org```):
+
+```json
+    {
+      "method": "GET",
+      "path": "/api/reports",
+      "query": {
+        "q": "{ 'case': '\\w+', 'editor': '.+', 'allowed': { '$contains': ':email' } }"
+      }
+    },
+```
+
+The ```LOKI_DEBUG``` environment variable can help you debug your requests and policies.

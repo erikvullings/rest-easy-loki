@@ -1,5 +1,6 @@
 import { JWTPayload } from 'jose';
 import { ParsedUrlQuery } from 'querystring';
+import { config } from './config';
 
 export interface PolicyRule {
   method: string;
@@ -62,6 +63,9 @@ export const createRouteBasedAccessControl = (
   });
 
   const checkProperty = (jwtPayload: JWTPayload, key: string, value: any): boolean => {
+    if (config.debug) {
+      console.log('Checking properties. JWT payload:', jwtPayload);
+    }
     const keys = key.split('.');
     let current: any = jwtPayload;
     for (const k of keys) {
@@ -80,14 +84,25 @@ export const createRouteBasedAccessControl = (
 
   return (method: string, path: string, query: ParsedUrlQuery, jwtPayload: JWTPayload): boolean => {
     for (const rule of policy) {
+      if (config.debug) {
+        console.log('Rule:', rule);
+      }
       if (rule.method.toLowerCase() === method.toLowerCase()) {
         const pathMatch = path.match(rule.regex);
         if (pathMatch) {
+          if (config.debug) {
+            console.log('Pathmatch:', pathMatch);
+          }
           // Check path placeholders
           const pathPlaceholderValues = pathMatch.slice(1);
           const pathPlaceholderCheck = rule.pathPlaceholders.every((placeholder, index) => {
             return checkProperty(jwtPayload, placeholder, pathPlaceholderValues[index]);
           });
+
+          if (config.debug) {
+            console.log('Path placeholder values:', pathPlaceholderValues);
+            console.log('Path placeholder check:', pathPlaceholderCheck);
+          }
 
           if (!pathPlaceholderCheck) {
             if (options.enableLogging) {
@@ -99,13 +114,24 @@ export const createRouteBasedAccessControl = (
           // Check query parameters
           if (rule.query) {
             const queryCheck = Object.entries(rule.query).every(([key, value]) => {
+              if (config.debug) {
+                console.log('Querycheck key:', key);
+                console.log('Querycheck value:', value);
+              }
               if (!(key in query)) return false;
               const canonicalQueryValue = canonicalizeQueryValue(query[key]);
               const valueMatch = canonicalQueryValue.match(value);
+              if (config.debug) {
+                console.log('Canonical query value:', canonicalQueryValue);
+                console.log('Value match:', valueMatch);
+              }
               if (!valueMatch) return false;
 
               // Check query placeholders
               const queryPlaceholderValues = valueMatch.slice(1);
+              if (config.debug) {
+                console.log('Query placeholder values:', queryPlaceholderValues);
+              }
               return rule.queryPlaceholders[key].every((placeholder, index) => {
                 return checkProperty(jwtPayload, placeholder, queryPlaceholderValues[index]);
               });
