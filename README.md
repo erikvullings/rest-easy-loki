@@ -268,7 +268,7 @@ Also, make sure that any used JWT properties are present and correct if you use 
 For example, the following GET request:
 
 ```
-https://example.org/api/answers?q={%22case%22:%2242%22,%22editor%22:%22someuser@somedomain.org%22,%20%22allowed%22:%20{%20%22$contains%22:%20%22someotheruser@somedomain.org%22}}
+https://example.org/api/reports?q={%22case%22:%2242%22,%22editor%22:%22someuser@somedomain.org%22,%20%22allowed%22:%20{%20%22$contains%22:%20%22someotheruser@somedomain.org%22}}
 ```
 
 would satisfy the below policy rule (if the signed JWT contains a property ```email``` with value ```someotheruser@somedomain.org```):
