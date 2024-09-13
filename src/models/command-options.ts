@@ -23,4 +23,6 @@ export interface ICommandOptions {
   policies?: string;
   /** If true, use zip compression for the messages */
   compression?: boolean;
+  /** If true, aggresively print debug info */
+  debug?: boolean;
 }

@@ -3,6 +3,7 @@ import loki, { Collection } from 'lokijs';
 import { ILokiConfiguration } from './models';
 import { sortByDateDesc } from './utils';
 import lfsa from 'lokijs/src/loki-fs-structured-adapter';
+import { config } from './config';
 
 let db: loki;
 
@@ -120,6 +121,9 @@ export const update = (collectionName: string, item: any) => {
 };
 
 export const get = (collectionName: string, query: string | number | { [key: string]: any }, by?: string) => {
+  if (config.debug) {
+    console.log('Query:', query);
+  }
   if (!collectionStore.hasOwnProperty(collectionName)) {
     return;
   }
@@ -140,6 +144,9 @@ export const get = (collectionName: string, query: string | number | { [key: str
 };
 
 export const findOne = (collectionName: string, query: string | number | { [key: string]: any }) => {
+  if (config.debug) {
+    console.log('Query:', query);
+  }
   if (!collectionStore.hasOwnProperty(collectionName)) {
     return;
   }
@@ -161,6 +168,9 @@ export const all = (collectionName: string, query?: string) => {
     return;
   }
   const collection = collectionStore[collectionName];
+  if (config.debug) {
+    console.log('Query:', query);
+  }
   const q = query
     ? (JSON.parse(query) as { [prop: string]: string | number | { [ops: string]: string | number } })
     : undefined;

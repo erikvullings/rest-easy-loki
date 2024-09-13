@@ -2,6 +2,7 @@ import * as Koa from 'koa';
 import { createRemoteJWKSet, jwtVerify, JWTVerifyGetKey } from 'jose';
 import { AccessControlOptions, createRouteBasedAccessControl, PolicyEvaluator } from './route-based-access-control';
 import { readPolicies } from './utils';
+import { config } from './config';
 
 const getApiKeys = () => {
   return {
@@ -70,6 +71,9 @@ const defaultPolicyEvaluator: PolicyEvaluator = () => {
 
 /** Policy decision point, decides whether the requested action is allowed. */
 const pdpFactory = (policyFile?: string, options?: AccessControlOptions) => {
+  if (config.debug) {
+    console.log('Loaded policyfile:', policyFile);
+  }
   const rules = readPolicies(policyFile);
   const policies = rules.length > 0 ? createRouteBasedAccessControl(rules, options) : defaultPolicyEvaluator;
   const apiKeys = getApiKeys();
@@ -118,6 +122,9 @@ const pdpFactory = (policyFile?: string, options?: AccessControlOptions) => {
         const { path: requestPath, query } = ctx.request;
         return policies(requestMethod, requestPath, query, payload);
       } catch {
+        if (config.debug) {
+          console.log("Authorization header doesn't contain a *valid* JWT token");
+        }
         // ctx.body = "Authorization header doesn't contain a valid JWT token";
         // ctx.status = 401; // Unauthenticated
         // return false;
