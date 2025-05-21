@@ -1,6 +1,6 @@
 # REST-EASY-LOKI
 
-A simple REST interface for the in-memory database, `lokijs`, featuring:
+A simple REST interface for the in-memory database, [lokijs](https://techfort.github.io/LokiJS/), featuring:
 
 - Automatic creation of collections, including CRUD actions, pagination and MongoDB-like queries.
 - Simple authorization using whitelisting domain names and API keys via environment variables.
