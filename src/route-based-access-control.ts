@@ -1,4 +1,4 @@
-import { JWTPayload } from 'jose';
+import type { JWTPayload } from 'jose' with { 'resolution-mode': 'import' };
 import { ParsedUrlQuery } from 'querystring';
 import { config } from './config';
 

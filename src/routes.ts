@@ -1,10 +1,44 @@
 import Router from 'koa-router';
 import { applyPatch } from 'rfc6902';
+import type { Operation } from 'rfc6902';
 import IO from 'socket.io';
+import type Koa from 'koa';
 import { all, collections, del, get, post, update } from './database';
 import { environment } from './environment';
-import { IMutation, ILokiObj, Resolver } from './models';
+import { Resolver } from './models';
 import { paginationFilter, propertyMap } from './utils';
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const objectBody = (ctx: Koa.Context): Record<string, unknown> => {
+  const body = ctx.request.body;
+  if (!isObject(body)) {
+    ctx.throw(400, 'Request body must be a JSON object.');
+  }
+  return body;
+};
+
+const isOperation = (value: unknown): value is Operation => {
+  if (!isObject(value) || typeof value.op !== 'string' || typeof value.path !== 'string') {
+    return false;
+  }
+  switch (value.op) {
+    case 'add':
+    case 'replace':
+    case 'test':
+      return 'value' in value;
+    case 'copy':
+    case 'move':
+      return typeof value.from === 'string';
+    case 'remove':
+      return true;
+    default:
+      return false;
+  }
+};
+
+const isPatch = (value: unknown): value is Operation[] => Array.isArray(value) && value.every(isOperation);
 
 export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?: IO.Server, resolve?: Resolver) => {
   const router = new Router();
@@ -68,7 +102,7 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
 
   router.put('/api/:collection/:id', async (ctx) => {
     const { collection, id } = ctx.params;
-    const item = ctx.request.body as ILokiObj;
+    const item = objectBody(ctx);
     if (item.$loki !== +id) {
       ctx.throw('Item ID does not match route ID.');
     }
@@ -82,9 +116,10 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
     const { collection, id } = ctx.params;
     if (id) {
       const item = get(collection, +id);
-      const mutation = ctx.request.body as IMutation;
-      if (item && mutation && mutation.patch) {
-        const { saveChanges, patch } = mutation;
+      const mutation = objectBody(ctx);
+      if (item && isPatch(mutation.patch)) {
+        const saveChanges = typeof mutation.saveChanges === 'string' ? mutation.saveChanges : undefined;
+        const patch = mutation.patch;
         const errors = applyPatch(item, patch);
         const hasErrors = errors.some((e) => e !== null);
         if (hasErrors) {
@@ -107,7 +142,7 @@ export const createRouter: (io?: IO.Server, resolve?: Resolver) => Router = (io?
 
   router.put('/api/:collection', async (ctx) => {
     const { collection } = ctx.params;
-    const item = ctx.request.body;
+    const item = objectBody(ctx);
     ctx.body = update(collection, item);
     if (io && item.id) {
       setTimeout(() => io.emit(`${collection}/${item.id}`, item), 0);

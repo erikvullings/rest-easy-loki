@@ -1,5 +1,4 @@
 import * as Koa from 'koa';
-import { createRemoteJWKSet, jwtVerify, JWTVerifyGetKey } from 'jose';
 import { AccessControlOptions, createRouteBasedAccessControl, PolicyEvaluator } from './route-based-access-control';
 import { readPolicies } from './utils';
 import { config } from './config';
@@ -9,7 +8,7 @@ const getApiKeys = () => {
     jwtShared: process.env.LOKI_AUTHZ_JWT_SHARED
       ? new TextEncoder().encode(process.env.LOKI_AUTHZ_JWT_SHARED)
       : undefined,
-    jwtJwks: process.env.LOKI_AUTHZ_JWT_JWKS ? createRemoteJWKSet(new URL(process.env.LOKI_AUTHZ_JWT_JWKS)) : undefined,
+    jwtJwksUrl: process.env.LOKI_AUTHZ_JWT_JWKS,
     jwtAnonymousRead:
       process.env.LOKI_AUTHZ_JWT_ANONYMOUS_READ && process.env.LOKI_AUTHZ_JWT_ANONYMOUS_READ.toLowerCase() === 'true',
     whitelist: process.env.LOKI_AUTHZ_WHITELIST
@@ -37,23 +36,6 @@ const getApiKeys = () => {
           .split(',')
           .map((x) => x.trim())
       : [],
-  } as {
-    /** The JWT shared key */
-    jwtShared: Uint8Array | undefined;
-    /** The JWKS instance */
-    jwtJwks: JWTVerifyGetKey | undefined;
-    /** Whether to allow read without valid JWT. */
-    jwtAnonymousRead: boolean;
-    /** Domain names that are white listed */
-    whitelist: string[];
-    /** API keys that allow CREATE operations */
-    create: string[];
-    /** API keys that allow READ operations */
-    read: string[];
-    /** API keys that allow UPDATE operations */
-    update: string[];
-    /** API keys that allow DELETE operations */
-    delete: string[];
   };
 };
 
@@ -78,9 +60,13 @@ const pdpFactory = (policyFile?: string, options?: AccessControlOptions) => {
   const policies = rules.length > 0 ? createRouteBasedAccessControl(rules, options) : defaultPolicyEvaluator;
   const apiKeys = getApiKeys();
 
-  const { jwtShared, jwtJwks, jwtAnonymousRead } = apiKeys;
+  const { jwtShared, jwtJwksUrl, jwtAnonymousRead } = apiKeys;
 
-  if (jwtShared || jwtJwks) {
+  if (jwtShared || jwtJwksUrl) {
+    const jose = import('jose');
+    const jwtJwks = jwtJwksUrl
+      ? jose.then(({ createRemoteJWKSet }) => createRemoteJWKSet(new URL(jwtJwksUrl)))
+      : undefined;
     console.log(
       `Using ${jwtShared ? 'symmetric shared-key' : 'assymmetric'} JSON Web Tokens (JWT) for authorization.${
         jwtAnonymousRead ? 'mAnonymous reading is supported.' : ''
@@ -113,11 +99,9 @@ const pdpFactory = (policyFile?: string, options?: AccessControlOptions) => {
       }
 
       try {
-        const { payload } = jwtShared
-          ? await jwtVerify(bearerToken, jwtShared)
-          : jwtJwks
-          ? await jwtVerify(bearerToken, jwtJwks)
-          : { payload: {} as { [key: string]: any } };
+        const { jwtVerify } = await jose;
+        const key = jwtShared || (jwtJwks && (await jwtJwks));
+        const { payload } = await jwtVerify(bearerToken, key!);
         // roles = payload.roles ?? payload.realm_access?.roles ?? [];
         const { path: requestPath, query } = ctx.request;
         return policies(requestMethod, requestPath, query, payload);
