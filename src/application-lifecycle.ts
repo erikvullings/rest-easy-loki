@@ -5,6 +5,7 @@ import type Router from 'koa-router';
 import type { Server as SocketServer } from 'socket.io';
 import { createApi } from './api';
 import { CollectionAccess, createCollectionAccess } from './collection-access';
+import { validateConfiguration, ValidatedConfiguration } from './configuration';
 import { createDatabaseLifecycle, DatabaseLifecycle } from './database-lifecycle';
 import { ICommandOptions, ILokiConfiguration, Resolver } from './models';
 
@@ -36,6 +37,7 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
   private database: DatabaseLifecycle | undefined;
   private listener: http.Server | undefined;
   private socket: SocketServer | undefined;
+  private configuration: ValidatedConfiguration | undefined;
   private startup: Promise<void> | undefined;
   private shutdownRequested = false;
 
@@ -49,7 +51,7 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
       return this.startup;
     }
     try {
-      this.validateConfiguration();
+      this.configuration = validateConfiguration(this.options.configuration);
     } catch (error) {
       this.state = 'failed';
       return Promise.reject(error);
@@ -88,16 +90,20 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
 
   private async startInternal(): Promise<void> {
     try {
+      const configuration = this.configuration;
+      if (!configuration) {
+        throw new Error('Application configuration was not validated.');
+      }
       this.database = createDatabaseLifecycle({
         ...this.options.database,
-        file: this.options.configuration.db,
+        file: configuration.db,
       });
       await this.database.start();
       this.throwIfInterrupted();
 
       this.collections = createCollectionAccess(this.database);
       const assembled = createApi(
-        this.options.configuration,
+        configuration,
         this.options.router,
         this.options.resolve,
         this.collections,
@@ -105,7 +111,7 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
       this.api = assembled.api;
       this.socket = assembled.io;
       this.listener = assembled.server || http.createServer(assembled.api.callback());
-      await this.listen(this.listener);
+      await this.listen(this.listener, configuration.port);
       this.throwIfInterrupted();
       this.state = 'ready';
     } catch (error) {
@@ -118,7 +124,7 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
     }
   }
 
-  private listen(server: http.Server): Promise<void> {
+  private listen(server: http.Server, port: number): Promise<void> {
     return new Promise((resolve, reject) => {
       const onError = (error: Error) => {
         server.off('listening', onListening);
@@ -136,7 +142,7 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
       };
       server.once('error', onError);
       server.once('listening', onListening);
-      server.listen(this.options.configuration.port ?? 3000, this.options.host);
+      server.listen(port, this.options.host);
     });
   }
 
@@ -174,18 +180,9 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
     this.database = undefined;
     this.collections = undefined;
     this.api = undefined;
+    this.configuration = undefined;
     this.startup = undefined;
     this.port = 0;
-  }
-
-  private validateConfiguration() {
-    const { db, port } = this.options.configuration;
-    if (!db || db.trim().length === 0) {
-      throw new Error('Application configuration requires a database filename.');
-    }
-    if (port !== undefined && (!Number.isInteger(port) || port < 0 || port > 65535)) {
-      throw new Error('Application port must be an integer from 0 through 65535.');
-    }
   }
 
   private throwIfInterrupted() {

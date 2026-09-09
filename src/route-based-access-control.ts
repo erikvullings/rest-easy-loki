@@ -1,16 +1,10 @@
 import type { JWTPayload } from 'jose' with { 'resolution-mode': 'import' };
 import { ParsedUrlQuery } from 'querystring';
-import { config } from './config';
-
-export interface PolicyRule {
-  method: string;
-  path: string;
-  query?: ParsedUrlQuery | { [key: string]: RegExp };
-  abac?: { [key: string]: string };
-}
+import type { PolicyRule } from './models';
 
 export interface AccessControlOptions {
   enableLogging?: boolean;
+  debug?: boolean;
 }
 
 export type PolicyEvaluator = (method: string, path: string, query: ParsedUrlQuery, jwtPayload: JWTPayload) => boolean;
@@ -19,12 +13,12 @@ export const createRouteBasedAccessControl = (
   policyFile?: PolicyRule[],
   options: AccessControlOptions = {},
 ): PolicyEvaluator => {
-  interface CompiledRule extends PolicyRule {
+  type CompiledRule = Omit<PolicyRule, 'query'> & {
     regex: RegExp;
     query?: { [key: string]: RegExp };
     pathPlaceholders: string[];
     queryPlaceholders: { [key: string]: string[] };
-  }
+  };
 
   const canonicalizeQueryValue = (value: string | string[] = '') =>
     value.toString().replace(/"/g, "'").replace(/ /g, '');
@@ -63,7 +57,7 @@ export const createRouteBasedAccessControl = (
   });
 
   const checkProperty = (jwtPayload: JWTPayload, key: string, value: any): boolean => {
-    if (config.debug) {
+    if (options.debug) {
       console.log('Checking properties. JWT payload:', jwtPayload);
     }
     const keys = key.split('.');
@@ -84,13 +78,13 @@ export const createRouteBasedAccessControl = (
 
   return (method: string, path: string, query: ParsedUrlQuery, jwtPayload: JWTPayload): boolean => {
     for (const rule of policy) {
-      if (config.debug) {
+      if (options.debug) {
         console.log('Rule:', rule);
       }
       if (rule.method.toLowerCase() === method.toLowerCase()) {
         const pathMatch = path.match(rule.regex);
         if (pathMatch) {
-          if (config.debug) {
+          if (options.debug) {
             console.log('Pathmatch:', pathMatch);
           }
           // Check path placeholders
@@ -99,7 +93,7 @@ export const createRouteBasedAccessControl = (
             return checkProperty(jwtPayload, placeholder, pathPlaceholderValues[index]);
           });
 
-          if (config.debug) {
+          if (options.debug) {
             console.log('Path placeholder values:', pathPlaceholderValues);
             console.log('Path placeholder check:', pathPlaceholderCheck);
           }
@@ -114,14 +108,14 @@ export const createRouteBasedAccessControl = (
           // Check query parameters
           if (rule.query) {
             const queryCheck = Object.entries(rule.query).every(([key, value]) => {
-              if (config.debug) {
+              if (options.debug) {
                 console.log('Querycheck key:', key);
                 console.log('Querycheck value:', value);
               }
               if (!(key in query)) return false;
               const canonicalQueryValue = canonicalizeQueryValue(query[key]);
               const valueMatch = canonicalQueryValue.match(value);
-              if (config.debug) {
+              if (options.debug) {
                 console.log('Canonical query value:', canonicalQueryValue);
                 console.log('Value match:', valueMatch);
               }
@@ -129,7 +123,7 @@ export const createRouteBasedAccessControl = (
 
               // Check query placeholders
               const queryPlaceholderValues = valueMatch.slice(1);
-              if (config.debug) {
+              if (options.debug) {
                 console.log('Query placeholder values:', queryPlaceholderValues);
               }
               return rule.queryPlaceholders[key].every((placeholder, index) => {

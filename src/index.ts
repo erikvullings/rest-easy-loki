@@ -1,4 +1,11 @@
 export { config } from './config';
+export {
+  ConfigurationError,
+  configurationFromEnvironment,
+  defaultConfiguration,
+  validateConfiguration,
+} from './configuration';
+export type { ValidatedConfiguration } from './configuration';
 export { createApi } from './api';
 export { createApplication } from './application-lifecycle';
 export type {

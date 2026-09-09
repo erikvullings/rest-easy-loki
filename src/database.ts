@@ -1,6 +1,5 @@
 import { LokiDatabaseLifecycle } from './database-lifecycle';
 import { CollectionAccess, createCollectionAccess } from './collection-access';
-import { config } from './config';
 import { ILokiConfiguration } from './models';
 import { sortByDateDesc } from './utils';
 
@@ -68,9 +67,6 @@ export const update = (collectionName: string, item: any) => {
 };
 
 export const get = (collectionName: string, query: string | number | { [key: string]: any }, by?: string) => {
-  if (config.debug) {
-    console.log('Query:', query);
-  }
   const collection = database().collection(collectionName);
   if (!collection) {
     return;
@@ -91,9 +87,6 @@ export const get = (collectionName: string, query: string | number | { [key: str
 };
 
 export const findOne = (collectionName: string, query: string | number | { [key: string]: any }) => {
-  if (config.debug) {
-    console.log('Query:', query);
-  }
   const collection = database().collection(collectionName);
   if (!collection) {
     return;
@@ -114,9 +107,6 @@ export const all = (collectionName: string, query?: string) => {
   const collection = database().collection(collectionName);
   if (!collection) {
     return;
-  }
-  if (config.debug) {
-    console.log('Query:', query);
   }
   const parsed = query
     ? (JSON.parse(query) as { [prop: string]: string | number | { [ops: string]: string | number } })

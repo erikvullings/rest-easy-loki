@@ -1,3 +1,7 @@
+import type { AuthorizationConfiguration } from './authorization-configuration';
+
+export type EnvironmentValue = undefined | string | number | boolean | Array<string | number | boolean>;
+
 export interface ICommandOptions {
   /** Show the manual */
   help?: boolean;
@@ -25,4 +29,8 @@ export interface ICommandOptions {
   compression?: boolean;
   /** If true, aggresively print debug info */
   debug?: boolean;
+  /** Explicit authentication and authorization behavior */
+  authorization?: AuthorizationConfiguration;
+  /** Non-secret environment values exposed by the /api/env route */
+  environment?: Record<string, EnvironmentValue>;
 }

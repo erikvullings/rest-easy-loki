@@ -9,8 +9,7 @@ import {
   RecordIdentity,
 } from './collection-access';
 import { getCollectionAccess } from './database';
-import { environment } from './environment';
-import { Resolver } from './models';
+import { EnvironmentValue, Resolver } from './models';
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -108,6 +107,7 @@ export const createRouter = (
   io?: IO.Server,
   resolve?: Resolver,
   collections: CollectionAccess = getCollectionAccess(),
+  environment: Record<string, EnvironmentValue> = {},
 ): Router => {
   const router = new Router();
 
@@ -125,7 +125,7 @@ export const createRouter = (
   });
 
   router.get('/api/env', async (ctx) => {
-    ctx.body = environment();
+    ctx.body = environment;
   });
 
   router.get('/api/collections', async (ctx) => {

@@ -1,9 +1,11 @@
 import './load-environment';
 import commandLineArgs from 'command-line-args';
 import { OptionDefinition } from 'command-line-args';
-import { config } from './config';
+import { configurationFromEnvironment } from './configuration';
 import { ICommandOptions } from './models/command-options';
 import { startService } from './serve';
+
+const config = configurationFromEnvironment(process.env);
 
 // tslint:disable-next-line: no-var-requires
 const npm = require('../package.json') as {
@@ -106,7 +108,7 @@ export class CommandLineInterface {
     {
       name: 'public',
       alias: 'b',
-      defaultValue: 'public',
+      defaultValue: config.public,
       type: String,
       typeLabel: 'String',
       description: "Relative path to a `public` folder to share your files, default 'public'.",
@@ -154,7 +156,10 @@ export class CommandLineInterface {
   ];
 }
 
-const options = commandLineArgs(CommandLineInterface.optionDefinitions) as ICommandOptions;
+const options = {
+  ...config,
+  ...(commandLineArgs(CommandLineInterface.optionDefinitions) as ICommandOptions),
+};
 if (options.help) {
   // tslint:disable-next-line: no-var-requires
   const getUsage = require('command-line-usage');

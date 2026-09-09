@@ -71,7 +71,7 @@ export const createApi = (
     console.log('Enabled serving files from ' + publicPath);
     api.use(serve(publicPath));
   }
-  api.use(pep(config.policies, { enableLogging: config.pretty }));
+  api.use(pep(config.authorization, { enableLogging: config.pretty, debug: config.debug }));
   // Allow uploading files to 'config.upload' folder. Files can be uploaded to /upload/:CONTEXT.
   if (config.upload) {
     const uploadPath = path.resolve(process.cwd(), config.upload);
@@ -86,7 +86,7 @@ export const createApi = (
     api.use(router.routes());
     api.use(router.allowedMethods());
   }
-  const dbRouter = createRouter(ss ? ss.io : undefined, resolve, collections);
+  const dbRouter = createRouter(ss ? ss.io : undefined, resolve, collections, config.environment);
   api.use(dbRouter.routes());
   api.use(dbRouter.allowedMethods());
   return { api, server: ss?.server, io: ss?.io };
