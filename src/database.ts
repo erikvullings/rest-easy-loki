@@ -1,9 +1,11 @@
 import { LokiDatabaseLifecycle } from './database-lifecycle';
+import { CollectionAccess, createCollectionAccess } from './collection-access';
 import { config } from './config';
 import { ILokiConfiguration } from './models';
 import { sortByDateDesc } from './utils';
 
 let lifecycle: LokiDatabaseLifecycle | undefined;
+let access: CollectionAccess | undefined;
 
 const database = () => {
   if (!lifecycle || lifecycle.state !== 'ready') {
@@ -17,13 +19,16 @@ export const startDatabase = async (
   callback?: () => void,
   options?: ILokiConfiguration,
 ): Promise<void> => {
+  access = undefined;
   lifecycle = new LokiDatabaseLifecycle({ ...options, file });
   await lifecycle.start();
+  access = createCollectionAccess(lifecycle);
   callback?.();
 };
 
 export const shutdownDatabase = async (): Promise<void> => {
   await lifecycle?.shutdown();
+  access = undefined;
 };
 
 export const rebuildDatabase = async (): Promise<void> => {
@@ -31,6 +36,13 @@ export const rebuildDatabase = async (): Promise<void> => {
     throw new Error('Database has not been started.');
   }
   await lifecycle.rebuild();
+};
+
+export const getCollectionAccess = (): CollectionAccess => {
+  if (!access) {
+    throw new Error('Database is not ready. Await startDatabase() before accessing collections.');
+  }
+  return access;
 };
 
 export const createCollection = (collectionName: string, indices?: string[]) => {

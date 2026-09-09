@@ -118,11 +118,18 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
     return this.collectionStore.get(name);
   }
 
-  public createCollection(name: string, options: Partial<CollectionOptions<any>> = {}): Collection {
+  public createCollection(
+    name: string,
+    options: Partial<CollectionOptions<Record<string, unknown>>> = {},
+  ): Collection {
     const database = this.requireDatabase();
     const collection = database.addCollection(name, options);
     this.collectionStore.set(name, collection);
     return collection;
+  }
+
+  public async persist(operation: string): Promise<void> {
+    await this.save(this.requireDatabase(), operation);
   }
 
   private async startInternal(): Promise<void> {

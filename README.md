@@ -187,12 +187,52 @@ export interface IMutation extends ILokiObj {
 }
 ```
 
+For programmatic access, use the same collection Module as the HTTP adapter:
+
+```ts
+import { createCollectionAccess, createDatabaseLifecycle } from 'rest-easy-loki';
+
+const database = createDatabaseLifecycle({
+  file: './data/app.db',
+  collections: { users: { unique: ['id'] } }
+});
+await database.start();
+const users = createCollectionAccess(database);
+
+await users.create('users', { id: 'alice', name: 'Alice', role: 'reader' });
+await users.get('users', { id: 'alice' }); // No $loki identity is required.
+await users.replace('users', { id: 'alice' }, { name: 'Alicia' }); // Removes role.
+await users.patch('users', { id: 'alice' }, [
+  { op: 'add', path: '/role', value: 'admin' }
+]);
+await users.delete('users', { id: 'alice' });
+```
+
+`replace` replaces all domain fields omitted from the body while retaining managed metadata and the route identity. `patch` applies RFC 6902 operations to the existing record and preserves omitted fields. Managed `$loki`, `meta`, and the unique field used as route identity cannot be changed.
+
+All mutations are persisted before their promises resolve. `bulk(collection, operations)` accepts `create`, `replace`, `patch`, and `delete` operations. Bulk execution is intentionally **not atomic**: operations run in order, stop at the first failure, persist preceding successes, and reject with `BULK_FAILED` and the number of applied operations.
+
+Collection errors expose a stable `code`, HTTP `status`, and message. The HTTP adapter returns them as:
+
+```json
+{
+  "error": {
+    "code": "RECORD_NOT_FOUND",
+    "message": "Record was not found in collection 'users'."
+  }
+}
+```
+
+Validation codes include `INVALID_COLLECTION`, `COLLECTION_NOT_FOUND`, `INVALID_FILTER`, `INVALID_PROJECTION`, `INVALID_PAGINATION`, `INVALID_ORDERING`, `INVALID_RECORD`, `INVALID_IDENTITY`, `IDENTITY_CONFLICT`, `RECORD_NOT_FOUND`, `INVALID_PATCH`, and `BULK_FAILED`.
+
 ### Filtering collections
 
-- Pagination of messages in a collection: [https://localhost:3000/api/COLLECTION_NAME?from=0&to=10](https://localhost:3000/api/COLLECTION_NAME?from=0&to=10).
-- Query a collection using find, for example based on strict equality `q={"name": "a name"}`: [https://localhost:3000/api/COLLECTION_NAME?from=0&to=10&q=%7B%20%22name%22:%20%22My%20third%20lesson%22%20%7D](https://localhost:3000/api/COLLECTION_NAME?from=0&to=10&q=%7B%20%22name%22:%20%22My%20third%20lesson%22%20%7D)
-- Another query example, not equal `q={"name": {"$ne": "a name"}}`: [https://localhost:3000/api/COLLECTION_NAME?from=0&to=10&q=%7B%20%22name%22:%20%7B%20%22$ne%22:%20%22My%20third%20lesson%22%20%7D%7D](https://localhost:3000/api/COLLECTION_NAME?from=0&to=10&q=q=%7B%20%22name%22:%20%7B%20%22$neq%22:%20%22My%20third%20lesson%22%20%7D%7D).
-- You can filter the properties that get returned (simple GraphQL-like filter) using a collection's 'view', e.g. [http://localhost:3000/api/COLLECTION_NAME/view?props=title,$loki,file](http://localhost:3000/api/COLLECTION_NAME/view?props=title,$loki,file).
+- `q` is one URL-encoded JSON object. Supported operators are `$eq`, `$aeq`, `$ne`, `$dteq`, `$gt`, `$gte`, `$lt`, `$lte`, `$jgt`, `$jgte`, `$jlt`, `$jlte`, `$between`, `$jbetween`, `$in`, `$nin`, `$keyin`, `$nkeyin`, `$definedin`, `$undefinedin`, `$containsString`, `$containsNone`, `$containsAny`, `$contains`, `$elemMatch`, `$type`, `$finite`, `$size`, `$len`, `$not`, `$and`, `$or`, and `$exists`. Function-valued and regular-expression operators are not accepted over JSON.
+- `from` and `to` are non-negative, zero-based, inclusive pagination bounds. For example, `?from=0&to=9` returns at most ten records.
+- `sort` is a comma-separated property list. `order` is the matching comma-separated `asc` or `desc` list, for example `?sort=last,name&order=asc,desc`.
+- `props` on `/api/COLLECTION_NAME/view` is a comma-separated projection of top-level properties. Filtering, ordering, pagination, and projection are applied in that order.
+- Strict equality example: `q={"name":"Alice"}`.
+- Operator example: `q={"age":{"$gte":18}}`.
 
 ### Sharing the public folder
 
