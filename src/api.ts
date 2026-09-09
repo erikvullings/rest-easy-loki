@@ -9,6 +9,7 @@ import compress from 'koa-compress';
 import Router from 'koa-router';
 import * as path from 'path';
 import { pep } from './authorization';
+import type { CollectionAccess } from './collection-access';
 import { logger, setLoggingOptions } from './logging';
 import { ICommandOptions, Resolver } from './models';
 import { createRouter } from './routes';
@@ -20,7 +21,8 @@ export const createApi = (
   config: ICommandOptions,
   router?: Router,
   resolve?: Resolver,
-): { api: Koa; server?: http.Server } => {
+  collections?: CollectionAccess,
+): { api: Koa; server?: http.Server; io?: ReturnType<typeof createSocketService>['io'] } => {
   setLoggingOptions(config.pretty as boolean);
   const api: Koa = new Koa();
 
@@ -84,8 +86,8 @@ export const createApi = (
     api.use(router.routes());
     api.use(router.allowedMethods());
   }
-  const dbRouter = createRouter(ss ? ss.io : undefined, resolve);
+  const dbRouter = createRouter(ss ? ss.io : undefined, resolve, collections);
   api.use(dbRouter.routes());
   api.use(dbRouter.allowedMethods());
-  return { api, server: ss ? ss.server : undefined };
+  return { api, server: ss?.server, io: ss?.io };
 };

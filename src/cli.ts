@@ -1,3 +1,4 @@
+import './load-environment';
 import commandLineArgs from 'command-line-args';
 import { OptionDefinition } from 'command-line-args';
 import { config } from './config';
@@ -83,8 +84,8 @@ export class CommandLineInterface {
       name: 'port',
       alias: 'p',
       defaultValue: config.port,
-      type: Boolean,
-      typeLabel: 'Boolean',
+      type: Number,
+      typeLabel: 'Number',
       description: `Port to use ($LOKI_PORT ${config.port}).`,
     },
     {
@@ -162,7 +163,21 @@ if (options.help) {
   process.exit(0);
 }
 
-startService(options).catch((error: unknown) => {
+const run = async () => {
+  const application = await startService(options);
+  let shuttingDown = false;
+  const shutdown = async () => {
+    if (shuttingDown) {
+      return;
+    }
+    shuttingDown = true;
+    await application.shutdown();
+  };
+  process.once('SIGINT', () => void shutdown());
+  process.once('SIGTERM', () => void shutdown());
+};
+
+run().catch((error: unknown) => {
   console.error(error);
   process.exitCode = 1;
 });

@@ -30,30 +30,35 @@ npm run serve
 To embed it in your own project, do something like the following:
 
 ```ts
-import * as Koa from 'koa'; // You only need to include @types/koa in your devDependencies, not Koa itself.
-import { createApi, db } from 'rest-easy-loki';
+import { createApplication } from 'rest-easy-loki';
 
-export const collectionName = 'documents';
+const application = createApplication({
+  configuration: {
+    db: './data/app.db',
+    port: 0, // Use an ephemeral port in tests.
+    cors: true,
+    sizeLimit: '25mb',
+    compression: true,
+    upload: 'upload',
+    public: 'public'
+  },
+  database: {
+    collections: {
+      documents: { unique: ['id'] }
+    }
+  }
+});
 
-const port = process.env.LOKI_PORT || '3000';
-const dbName = process.env.LOKI_DB;
-const cors = (process.env.LOKI_CORS || 'true') === 'true';
-const sizeLimit = process.env.LOKI_SIZE_LIMIT || '25mb';
+await application.start();
+await application.ready();
+console.log(`Server running on port ${application.port}.`);
 
-export const startService = async () => {
-  await db.startDatabase(dbName);
-  const { api } = createApi({
-    cors,
-    sizeLimit,
-    compression: true, // Compress data using gzip
-    upload: 'upload',  // Allow uploading data to this folder
-    public: 'public'   // Serve all files in this folder, e.g. SPA
-  }) as Koa;
-  api.listen(port);
-  console.log(`Server running on port ${port}.`);
-};
-void startService();
+await application.shutdown();
 ```
+
+`createApplication` is the shared lifecycle used by embedding applications and the CLI. It assembles middleware, optional caller routes, collection access, database startup, Socket.IO, and the HTTP listener in that order. `start()`, `ready()`, and `shutdown()` are awaitable. Repeated calls are idempotent; calling `start()` after shutdown starts the application again. A partially failed startup closes any listener and database it opened.
+
+Importing the package does not read files, start listeners, or install process signal handlers. Signal handling and `.env` loading belong to the CLI adapter. The existing `startService(configuration)` helper remains available and now resolves to the started application lifecycle, allowing callers to await and later shut it down.
 
 ### Database lifecycle
 

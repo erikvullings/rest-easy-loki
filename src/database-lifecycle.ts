@@ -147,7 +147,7 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
       } as Partial<LokiConfigOptions>);
       this.database = database;
 
-      if (fs.existsSync(this.file)) {
+      if (await this.shouldLoadExistingDatabase()) {
         await new Promise<void>((resolve, reject) => {
           database.loadDatabase({}, (error) => {
             if (error) {
@@ -195,6 +195,19 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
         await this.importJson(collection, jsonImport);
       }
       this.throwIfInterrupted();
+    }
+  }
+
+  private async shouldLoadExistingDatabase(): Promise<boolean> {
+    if (!fs.existsSync(this.file)) {
+      return false;
+    }
+    try {
+      const shell = JSON.parse(await fs.promises.readFile(this.file, 'utf8')) as { collections?: unknown[] };
+      return !Array.isArray(shell.collections) || shell.collections.length > 0;
+    } catch {
+      // Let Loki surface malformed or unreadable database errors with its normal load context.
+      return true;
     }
   }
 

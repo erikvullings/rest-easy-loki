@@ -1,19 +1,16 @@
 import fs from 'fs';
-import path from 'path';
+import { ApplicationLifecycle, createApplication } from './application-lifecycle';
 import { config } from './config';
-import { createApi, db } from './index';
 import { ILokiConfiguration } from './models';
 import { ICommandOptions } from './models/command-options';
 
-export const startService = async (configuration: ICommandOptions = config): Promise<void> => {
-  const folderPath = path.dirname(path.resolve(process.cwd(), configuration.db || ''));
-  if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+export const startService = async (configuration: ICommandOptions = config): Promise<ApplicationLifecycle> => {
   const dbOptions =
     configuration.config && fs.existsSync(configuration.config)
       ? (JSON.parse(fs.readFileSync(configuration.config).toString()) as ILokiConfiguration)
       : undefined;
-  await db.startDatabase(configuration.db, undefined, dbOptions);
-  const { api, server } = createApi(configuration);
-  (server || api).listen(configuration.port);
-  console.log(`Server running on port ${configuration.port}.`);
+  const application = createApplication({ configuration, database: dbOptions });
+  await application.start();
+  console.log(`Server running on port ${application.port}.`);
+  return application;
 };

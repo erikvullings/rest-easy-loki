@@ -1,5 +1,11 @@
 export { config } from './config';
 export { createApi } from './api';
+export { createApplication } from './application-lifecycle';
+export type {
+  ApplicationLifecycle,
+  ApplicationLifecycleState,
+  ApplicationOptions,
+} from './application-lifecycle';
 export { CollectionAccessError, createCollectionAccess, isJsonPatch } from './collection-access';
 export type {
   BulkMutation,

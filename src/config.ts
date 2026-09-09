@@ -1,7 +1,4 @@
-import dotenv from 'dotenv';
 import { ICommandOptions } from './models/command-options';
-
-dotenv.config({ quiet: true });
 
 export const config = {
   help: false,

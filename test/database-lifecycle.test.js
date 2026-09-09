@@ -184,3 +184,21 @@ test('shutdown persists pending changes before an existing database is reopened'
     await db.shutdownDatabase();
   });
 });
+
+test('an existing database with no collections can be reopened', async () => {
+  await withTempDirectory(async (directory) => {
+    const file = path.join(directory, 'database.db');
+    const first = createDatabaseLifecycle({ file });
+    await first.start();
+    await first.shutdown();
+
+    const reopened = createDatabaseLifecycle({ file });
+    await Promise.race([
+      reopened.start(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('empty database reopen timed out')), 100)),
+    ]);
+
+    assert.deepEqual(reopened.collections(), []);
+    await reopened.shutdown();
+  });
+});
