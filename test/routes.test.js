@@ -17,9 +17,17 @@ test('HTTP routes use collection access semantics and translate its errors', asy
   });
   await database.start();
   const collections = createCollectionAccess(database);
+  let resolverCalls = 0;
+  const resolver = async () => {
+    resolverCalls += 1;
+    return [
+      { id: 'remote-1', secret: true },
+      { id: 'remote-2', secret: true },
+    ];
+  };
   const app = new Koa();
   app.use(koaBody());
-  const router = createRouter(undefined, undefined, collections);
+  const router = createRouter(undefined, resolver, collections);
   app.use(router.routes());
   app.use(router.allowedMethods());
   const server = app.listen(0);
@@ -27,6 +35,7 @@ test('HTTP routes use collection access semantics and translate its errors', asy
   try {
     const address = server.address();
     const baseUrl = `http://127.0.0.1:${address.port}`;
+    const resolved = await fetch(`${baseUrl}/api/users/view?props=id&from=1&to=1`);
     const created = await fetch(`${baseUrl}/api/users`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -40,11 +49,13 @@ test('HTTP routes use collection access semantics and translate its errors', asy
         created: { status: created.status, id: (await created.json()).id },
         found: { status: found.status, id: (await found.json()).id },
         invalid: { status: invalid.status, code: (await invalid.json()).error.code },
+        resolved: { body: await resolved.json(), calls: resolverCalls },
       },
       {
         created: { status: 200, id: 'alice' },
         found: { status: 200, id: 'alice' },
         invalid: { status: 400, code: 'INVALID_FILTER' },
+        resolved: { body: [{ id: 'remote-2' }], calls: 1 },
       },
     );
   } finally {

@@ -50,7 +50,10 @@ export const defaultConfiguration: ValidatedConfiguration = {
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const validatePublicRoutes = (routes: PublicRouteRule[] | undefined): PublicRouteRule[] => {
+const hasAuthorizationMode = (value: unknown): value is AuthorizationConfiguration =>
+  isObject(value) && (value.mode === 'none' || value.mode === 'apiKey' || value.mode === 'jwt');
+
+const validatePublicRoutes = (routes: unknown): PublicRouteRule[] => {
   if (routes === undefined) {
     return [];
   }
@@ -122,10 +125,16 @@ const readPolicyRules = (filename: string): PolicyRule[] => {
 };
 
 const validateAuthorization = (
-  authorization: AuthorizationConfiguration | undefined,
+  authorization: unknown,
   policyFile?: string,
 ): AuthorizationConfiguration => {
-  const selected = authorization || defaultConfiguration.authorization;
+  const selected = authorization === undefined ? defaultConfiguration.authorization : authorization;
+  if (!isObject(selected)) {
+    throw new ConfigurationError('authorization must be an object.');
+  }
+  if (!hasAuthorizationMode(selected)) {
+    throw new ConfigurationError('authorization.mode must be none, apiKey, or jwt.');
+  }
   if (policyFile && selected.mode !== 'jwt') {
     throw new ConfigurationError('A policy file requires JWT authorization mode.');
   }
@@ -146,11 +155,14 @@ const validateAuthorization = (
           delete: normalizeList(keys.delete, 'authorization.keys.delete'),
         },
       };
-      const configured =
-        normalized.whitelist!.length > 0 ||
-        Object.values(normalized.keys).some((values) => values && values.length > 0);
+      if (normalized.whitelist!.length > 0) {
+        throw new ConfigurationError(
+          'authorization.whitelist is no longer supported because request Host headers are untrusted; use publicRoutes for intentional anonymous access.',
+        );
+      }
+      const configured = Object.values(normalized.keys).some((values) => values && values.length > 0);
       if (!configured) {
-        throw new ConfigurationError('API-key mode requires at least one key or whitelisted hostname.');
+        throw new ConfigurationError('API-key mode requires at least one key.');
       }
       return normalized;
     }
@@ -249,7 +261,9 @@ export const configurationFromEnvironment = (
     delete: listValue(source.LOKI_AUTHZ_DELETE),
   };
   const whitelist = listValue(source.LOKI_AUTHZ_WHITELIST);
-  const hasJwt = Boolean(sharedSecret || jwksUrl);
+  const hasJwt =
+    Boolean(sharedSecret || jwksUrl) ||
+    source.LOKI_AUTHZ_JWT_ANONYMOUS_READ !== undefined;
   const hasApiKey = whitelist.length > 0 || Object.values(apiKeys).some((values) => values.length > 0);
   if (hasJwt && hasApiKey) {
     throw new ConfigurationError('JWT and API-key environment settings cannot be combined.');

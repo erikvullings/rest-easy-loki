@@ -113,6 +113,11 @@ test('invalid and incomplete authentication settings fail with actionable errors
         LOKI_AUTHZ_JWT_SHARED: 'secret',
         LOKI_AUTHZ_READ: 'reader',
       }),
+    () =>
+      validateConfiguration({
+        db: 'app.db',
+        authorization: { mode: 'apiKey', keys: { read: ['reader'] }, whitelist: ['trusted.example'] },
+      }),
   ];
 
   assert.deepEqual(
@@ -125,7 +130,7 @@ test('invalid and incomplete authentication settings fail with actionable errors
       }
     }),
     [
-      { code: 'INVALID_CONFIGURATION', message: 'API-key mode requires at least one key or whitelisted hostname.' },
+      { code: 'INVALID_CONFIGURATION', message: 'API-key mode requires at least one key.' },
       {
         code: 'INVALID_CONFIGURATION',
         message: 'JWT mode requires authorization rules, anonymous reads, or public routes.',
@@ -134,6 +139,32 @@ test('invalid and incomplete authentication settings fail with actionable errors
         code: 'INVALID_CONFIGURATION',
         message: 'JWT and API-key environment settings cannot be combined.',
       },
+      {
+        code: 'INVALID_CONFIGURATION',
+        message:
+          'authorization.whitelist is no longer supported because request Host headers are untrusted; use publicRoutes for intentional anonymous access.',
+      },
     ],
+  );
+});
+
+test('null authorization is rejected instead of defaulting to no authentication', () => {
+  assert.throws(
+    () => validateConfiguration({ db: 'app.db', authorization: null }),
+    (error) => error.code === 'INVALID_CONFIGURATION' && /authorization must be an object/.test(error.message),
+  );
+});
+
+test('JWT-only environment settings fail closed when the verification key is missing', () => {
+  assert.throws(
+    () =>
+      validateConfiguration(
+        configurationFromEnvironment({
+          LOKI_AUTHZ_JWT_ANONYMOUS_READ: 'true',
+        }),
+      ),
+    (error) =>
+      error.code === 'INVALID_CONFIGURATION' &&
+      /exactly one of sharedSecret or jwksUrl/.test(error.message),
   );
 });

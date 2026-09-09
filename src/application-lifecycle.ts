@@ -39,6 +39,7 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
   private socket: SocketServer | undefined;
   private configuration: ValidatedConfiguration | undefined;
   private startup: Promise<void> | undefined;
+  private stopping: Promise<void> | undefined;
   private shutdownRequested = false;
 
   public constructor(private readonly options: ApplicationOptions) {}
@@ -49,6 +50,9 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
     }
     if (this.state === 'starting' && this.startup) {
       return this.startup;
+    }
+    if (this.stopping) {
+      return this.stopping.then(() => this.start());
     }
     try {
       this.configuration = validateConfiguration(this.options.configuration);
@@ -69,19 +73,29 @@ class LokiApplicationLifecycle implements ApplicationLifecycle {
     return this.startup || Promise.reject(new Error('Application startup has not been started.'));
   }
 
-  public async shutdown(): Promise<void> {
+  public shutdown(): Promise<void> {
+    if (this.stopping) {
+      return this.stopping;
+    }
     if (this.state === 'idle' || this.state === 'stopped') {
       this.state = 'stopped';
-      return;
+      return Promise.resolve();
     }
-    if (this.state === 'starting' && this.startup) {
+    const startup = this.state === 'starting' ? this.startup : undefined;
+    if (startup) {
       this.shutdownRequested = true;
-      await this.startup.catch(() => undefined);
-      this.state = 'stopped';
-      return;
     }
-
     this.state = 'stopping';
+    this.stopping = this.shutdownInternal(startup).finally(() => {
+      this.stopping = undefined;
+    });
+    return this.stopping;
+  }
+
+  private async shutdownInternal(startup: Promise<void> | undefined): Promise<void> {
+    if (startup) {
+      await startup.catch(() => undefined);
+    }
     await this.closeListener();
     await this.database?.shutdown();
     this.clearResources();

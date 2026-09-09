@@ -69,6 +69,35 @@ test('repeated start and shutdown calls are idempotent', async () => {
   }
 });
 
+test('start waits for an in-progress shutdown before creating new resources', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'rest-easy-loki-app-'));
+  const application = createApplication({
+    configuration: {
+      db: path.join(directory, 'database.db'),
+      port: 0,
+      public: undefined,
+      pretty: true,
+    },
+    host: '127.0.0.1',
+  });
+
+  try {
+    await application.start();
+    const shutdown = application.shutdown();
+    const restart = application.start();
+    await Promise.all([shutdown, restart]);
+
+    const response = await fetch(`http://127.0.0.1:${application.port}/api/collections`);
+    assert.deepEqual(
+      { state: application.state, listening: application.port > 0, status: response.status },
+      { state: 'ready', listening: true, status: 201 },
+    );
+  } finally {
+    await application.shutdown();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('failed listener startup closes the database for a later application', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'rest-easy-loki-app-'));
   const blocker = http.createServer();

@@ -37,6 +37,7 @@ test('API-key mode distinguishes missing, invalid, valid, and public requests', 
     async (baseUrl) => {
       const missing = await fetch(`${baseUrl}/api/collections`);
       const invalid = await fetch(`${baseUrl}/api/collections`, { headers: { 'x-api-key': 'wrong' } });
+      const spoofedHost = await fetch(`${baseUrl}/api/collections`, { headers: { host: 'trusted.example' } });
       const valid = await fetch(`${baseUrl}/api/collections`, { headers: { 'x-api-key': 'read-key' } });
       const publicRoute = await fetch(`${baseUrl}/api/env`);
 
@@ -44,12 +45,14 @@ test('API-key mode distinguishes missing, invalid, valid, and public requests', 
         {
           missing: { status: missing.status, code: (await missing.json()).error.code },
           invalid: { status: invalid.status, code: (await invalid.json()).error.code },
+          spoofedHost: { status: spoofedHost.status, code: (await spoofedHost.json()).error.code },
           valid: valid.status,
           public: publicRoute.status,
         },
         {
           missing: { status: 401, code: 'AUTHENTICATION_REQUIRED' },
           invalid: { status: 403, code: 'ACCESS_FORBIDDEN' },
+          spoofedHost: { status: 401, code: 'AUTHENTICATION_REQUIRED' },
           valid: 201,
           public: 200,
         },

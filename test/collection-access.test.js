@@ -101,6 +101,42 @@ test('bulk mutations stop on failure and preserve preceding successful operation
   });
 });
 
+test('concurrent mutations are all persisted before they are acknowledged', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'rest-easy-loki-access-'));
+  const file = path.join(directory, 'database.db');
+  const options = {
+    file,
+    collections: { users: { unique: ['id'] } },
+  };
+  let database;
+  let reopened;
+
+  try {
+    database = createDatabaseLifecycle(options);
+    await database.start();
+    const access = [
+      createCollectionAccess(database),
+      createCollectionAccess(database),
+    ];
+    await Promise.all(
+      Array.from({ length: 25 }, (_, index) =>
+        access[index % access.length].create('users', { id: `user-${index}`, index }),
+      ),
+    );
+    await database.shutdown();
+
+    reopened = createDatabaseLifecycle(options);
+    await reopened.start();
+    const persisted = await createCollectionAccess(reopened).query('users');
+    assert.equal(persisted.length, 25);
+    await reopened.shutdown();
+  } finally {
+    await reopened?.shutdown();
+    await database?.shutdown();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
 test('invalid collection, filter, and projection inputs use stable error codes', async () => {
   await withDatabase(async (collections) => {
     const checks = [
@@ -142,5 +178,23 @@ test('stable identities reject conflicting replacements and support deletion', a
       (error) => error.code === 'RECORD_NOT_FOUND' && error.status === 404,
     );
     assert.equal(deleted.id, 'alice');
+  });
+});
+
+test('patch paths cannot traverse prototype properties to change managed identity', async () => {
+  await withDatabase(async (collections) => {
+    await collections.create('users', { id: 'alice', name: 'Alice' });
+    await collections.create('users', { id: 'bob', name: 'Bob' });
+
+    await assert.rejects(
+      collections.patch('users', { id: 'alice' }, [
+        { op: 'replace', path: '/__proto__/$loki', value: 2 },
+      ]),
+      (error) => error.code === 'IDENTITY_CONFLICT' && error.status === 409,
+    );
+
+    assert.equal(Object.prototype.$loki, undefined);
+    const bob = await collections.get('users', { id: 'bob' });
+    assert.equal(bob.name, 'Bob');
   });
 });

@@ -1,4 +1,5 @@
 import type { Collection } from 'lokijs';
+import { isDeepStrictEqual } from 'node:util';
 import { applyPatch } from 'rfc6902';
 import type { Operation } from 'rfc6902';
 import { LokiDatabaseLifecycle, DatabaseLifecycle } from './database-lifecycle';
@@ -156,9 +157,20 @@ const isOperation = (value: unknown): value is Operation => {
 export const isJsonPatch = (value: unknown): value is Operation[] =>
   Array.isArray(value) && value.length > 0 && value.every(isOperation);
 
-const pathRoot = (pointer: string) => pointer.split('/')[1]?.replace(/~1/g, '/').replace(/~0/g, '~');
+const pointerSegments = (pointer: string) =>
+  pointer
+    .split('/')
+    .slice(1)
+    .map((segment) => segment.replace(/~1/g, '/').replace(/~0/g, '~'));
+
+const pathRoot = (pointer: string) => pointerSegments(pointer)[0];
+
+const hasUnsafePointerSegment = (pointer: string) =>
+  pointerSegments(pointer).some((segment) => forbiddenProperties.has(segment));
 
 export class LokiCollectionAccess implements CollectionAccess {
+  private mutationQueue: Promise<void> = Promise.resolve();
+
   public constructor(private readonly database: LokiDatabaseLifecycle) {}
 
   public collections() {
@@ -228,10 +240,12 @@ export class LokiCollectionAccess implements CollectionAccess {
       : records;
   }
 
-  public async create(collectionName: string, record: Record<string, unknown>) {
-    const created = this.createRecord(collectionName, record);
-    await this.database.persist('create');
-    return clone(created);
+  public create(collectionName: string, record: Record<string, unknown>) {
+    return this.mutate(async () => {
+      const created = this.createRecord(collectionName, record);
+      await this.database.persist('create');
+      return clone(created);
+    });
   }
 
   public async get(collectionName: string, identity: RecordIdentity) {
@@ -240,68 +254,85 @@ export class LokiCollectionAccess implements CollectionAccess {
     return clone(record as Record<string, unknown>);
   }
 
-  public async replace(collectionName: string, identity: RecordIdentity, record: Record<string, unknown>) {
-    const collection = this.requireCollection(collectionName);
-    const updated = this.replaceRecord(collection, identity, record);
-    await this.database.persist('replace');
-    return clone(updated);
+  public replace(collectionName: string, identity: RecordIdentity, record: Record<string, unknown>) {
+    return this.mutate(async () => {
+      const collection = this.requireCollection(collectionName);
+      const updated = this.replaceRecord(collection, identity, record);
+      await this.database.persist('replace');
+      return clone(updated);
+    });
   }
 
-  public async patch(collectionName: string, identity: RecordIdentity, patch: Operation[]) {
-    const collection = this.requireCollection(collectionName);
-    const updated = this.patchRecord(collection, identity, patch);
-    await this.database.persist('patch');
-    return clone(updated);
+  public patch(collectionName: string, identity: RecordIdentity, patch: Operation[]) {
+    return this.mutate(async () => {
+      const collection = this.requireCollection(collectionName);
+      const updated = this.patchRecord(collection, identity, patch);
+      await this.database.persist('patch');
+      return clone(updated);
+    });
   }
 
-  public async delete(collectionName: string, identity: RecordIdentity) {
-    const collection = this.requireCollection(collectionName);
-    const deleted = this.deleteRecord(collection, identity);
-    await this.database.persist('delete');
-    return clone(deleted);
+  public delete(collectionName: string, identity: RecordIdentity) {
+    return this.mutate(async () => {
+      const collection = this.requireCollection(collectionName);
+      const deleted = this.deleteRecord(collection, identity);
+      await this.database.persist('delete');
+      return clone(deleted);
+    });
   }
 
-  public async bulk(collectionName: string, mutations: BulkMutation[]) {
-    const collection = this.requireCollection(collectionName);
-    if (!Array.isArray(mutations) || mutations.length === 0) {
-      throw new CollectionAccessError('BULK_FAILED', 'Bulk mutation must contain at least one operation.', 400);
-    }
-
-    const results: Array<Record<string, unknown>> = [];
-    for (const mutation of mutations) {
-      try {
-        if (!isObject(mutation) || typeof mutation.type !== 'string') {
-          throw new CollectionAccessError('BULK_FAILED', 'Each bulk operation must be an object with a type.', 400);
-        }
-        const result = (() => {
-          switch (mutation.type) {
-            case 'create':
-              return this.createRecord(collectionName, mutation.record);
-            case 'replace':
-              return this.replaceRecord(collection, mutation.identity, mutation.record);
-            case 'patch':
-              return this.patchRecord(collection, mutation.identity, mutation.patch);
-            case 'delete':
-              return this.deleteRecord(collection, mutation.identity);
-            default:
-              return assertNever(mutation);
-          }
-        })();
-        results.push(result);
-      } catch (error) {
-        if (results.length > 0) {
-          await this.database.persist('partial bulk mutation');
-        }
-        const status = error instanceof CollectionAccessError ? error.status : 500;
-        throw new CollectionAccessError(
-          'BULK_FAILED',
-          `Bulk mutation stopped after ${results.length} successful operation(s): ${errorMessage(error)}`,
-          status,
-        );
+  public bulk(collectionName: string, mutations: BulkMutation[]) {
+    return this.mutate(async () => {
+      const collection = this.requireCollection(collectionName);
+      if (!Array.isArray(mutations) || mutations.length === 0) {
+        throw new CollectionAccessError('BULK_FAILED', 'Bulk mutation must contain at least one operation.', 400);
       }
-    }
-    await this.database.persist('bulk mutation');
-    return results.map((record) => clone(record));
+
+      const results: Array<Record<string, unknown>> = [];
+      for (const mutation of mutations) {
+        try {
+          if (!isObject(mutation) || typeof mutation.type !== 'string') {
+            throw new CollectionAccessError('BULK_FAILED', 'Each bulk operation must be an object with a type.', 400);
+          }
+          const result = (() => {
+            switch (mutation.type) {
+              case 'create':
+                return this.createRecord(collectionName, mutation.record);
+              case 'replace':
+                return this.replaceRecord(collection, mutation.identity, mutation.record);
+              case 'patch':
+                return this.patchRecord(collection, mutation.identity, mutation.patch);
+              case 'delete':
+                return this.deleteRecord(collection, mutation.identity);
+              default:
+                return assertNever(mutation);
+            }
+          })();
+          results.push(result);
+        } catch (error) {
+          if (results.length > 0) {
+            await this.database.persist('partial bulk mutation');
+          }
+          const status = error instanceof CollectionAccessError ? error.status : 500;
+          throw new CollectionAccessError(
+            'BULK_FAILED',
+            `Bulk mutation stopped after ${results.length} successful operation(s): ${errorMessage(error)}`,
+            status,
+          );
+        }
+      }
+      await this.database.persist('bulk mutation');
+      return results.map((record) => clone(record));
+    });
+  }
+
+  private mutate<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.mutationQueue.then(operation);
+    this.mutationQueue = result.then(
+      () => undefined,
+      () => undefined,
+    );
+    return result;
   }
 
   private createRecord(collectionName: string, record: Record<string, unknown>) {
@@ -373,8 +404,10 @@ export class LokiCollectionAccess implements CollectionAccess {
     if (
       patch.some(
         (operation) =>
+          hasUnsafePointerSegment(operation.path) ||
           protectedProperties.has(pathRoot(operation.path)) ||
-          (('from' in operation && typeof operation.from === 'string') && protectedProperties.has(pathRoot(operation.from))),
+          (('from' in operation && typeof operation.from === 'string') &&
+            (hasUnsafePointerSegment(operation.from) || protectedProperties.has(pathRoot(operation.from)))),
       )
     ) {
       throw new CollectionAccessError('IDENTITY_CONFLICT', 'Patch must not change managed or route identity fields.', 409);
@@ -384,6 +417,20 @@ export class LokiCollectionAccess implements CollectionAccess {
     const errors = applyPatch(updated, patch).filter((error) => error !== null);
     if (errors.length > 0) {
       throw new CollectionAccessError('INVALID_PATCH', `Patch could not be applied: ${errors[0]}`, 400);
+    }
+    const routeIdentity =
+      typeof identity === 'number'
+        ? true
+        : (() => {
+            const [field, value] = Object.entries(identity)[0];
+            return Object.is(updated[field], value);
+          })();
+    if (
+      updated.$loki !== current.$loki ||
+      !isDeepStrictEqual(updated.meta, current.meta) ||
+      !routeIdentity
+    ) {
+      throw new CollectionAccessError('IDENTITY_CONFLICT', 'Patch must not change managed or route identity fields.', 409);
     }
     return this.updateRecord(collection, updated, 'patch');
   }

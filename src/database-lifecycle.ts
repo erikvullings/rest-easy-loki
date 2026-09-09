@@ -31,6 +31,10 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
   private readonly collectionStore = new Map<string, Collection>();
   private database?: loki;
   private startup?: Promise<void>;
+  private stopping?: Promise<void>;
+  private persistenceQueue: Promise<void> = Promise.resolve();
+  private autosaveTimer?: NodeJS.Timeout;
+  private autosavePending = false;
   private shutdownRequested = false;
   private rebuildOnStart: boolean;
 
@@ -46,6 +50,9 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
     }
     if (this.state === 'starting' && this.startup) {
       return this.startup;
+    }
+    if (this.stopping) {
+      return this.stopping.then(() => this.start());
     }
 
     this.shutdownRequested = false;
@@ -64,25 +71,35 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
     return this.startup;
   }
 
-  public async shutdown(): Promise<void> {
+  public shutdown(): Promise<void> {
+    if (this.stopping) {
+      return this.stopping;
+    }
     if (this.state === 'idle' || this.state === 'stopped') {
       this.state = 'stopped';
-      return;
+      return Promise.resolve();
     }
-    if (this.state === 'starting' && this.startup) {
+    const startup = this.state === 'starting' ? this.startup : undefined;
+    if (startup) {
       this.shutdownRequested = true;
-      await this.startup.catch(() => undefined);
-      this.state = 'stopped';
-      return;
+    }
+    this.state = 'stopping';
+    this.stopping = this.shutdownInternal(startup).finally(() => {
+      this.stopping = undefined;
+    });
+    return this.stopping;
+  }
+
+  private async shutdownInternal(startup: Promise<void> | undefined): Promise<void> {
+    if (startup) {
+      await startup.catch(() => undefined);
     }
     if (!this.database) {
       this.state = 'stopped';
       return;
     }
-
-    this.state = 'stopping';
     const database = this.database;
-    database.autosaveDisable();
+    this.disableAutosave(database);
     await this.save(database, 'shutdown');
     await new Promise<void>((resolve, reject) => {
       database.close((error) => {
@@ -166,10 +183,12 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
       await this.save(database, 'startup');
       this.throwIfInterrupted();
 
-      database.autosaveEnable();
+      this.enableAutosave(database);
       this.state = 'ready';
     } catch (error) {
-      this.database?.autosaveDisable();
+      if (this.database) {
+        this.disableAutosave(this.database);
+      }
       this.database = undefined;
       this.collectionStore.clear();
       this.state = 'failed';
@@ -241,6 +260,15 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
   }
 
   private async save(database: loki, phase: string): Promise<void> {
+    const persistence = this.persistenceQueue.then(() => this.saveNow(database, phase));
+    this.persistenceQueue = persistence.catch(() => undefined);
+    return persistence;
+  }
+
+  private async saveNow(database: loki, phase: string): Promise<void> {
+    database.collections.forEach((collection) => {
+      collection.dirty = true;
+    });
     await new Promise<void>((resolve, reject) => {
       database.saveDatabase((error) => {
         if (error) {
@@ -250,6 +278,30 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
         }
       });
     });
+  }
+
+  private enableAutosave(database: loki) {
+    this.autosaveTimer = setInterval(() => {
+      if (this.state !== 'ready' || this.autosavePending) {
+        return;
+      }
+      this.autosavePending = true;
+      void this.save(database, 'autosave')
+        .catch((error) => {
+          console.error(errorMessage(error));
+        })
+        .finally(() => {
+          this.autosavePending = false;
+        });
+    }, 5000);
+  }
+
+  private disableAutosave(database: loki) {
+    database.autosaveDisable();
+    if (this.autosaveTimer) {
+      clearInterval(this.autosaveTimer);
+      this.autosaveTimer = undefined;
+    }
   }
 
   private async deleteDatabaseFiles(): Promise<void> {
@@ -264,7 +316,12 @@ export class LokiDatabaseLifecycle implements DatabaseLifecycle {
       }
       throw new Error(`Failed to inspect database files for '${this.file}': ${errorMessage(error)}`);
     }
-    const databaseFiles = files.filter((filename) => filename === basename || filename.startsWith(`${basename}.`));
+    const partitionPrefix = `${basename}.`;
+    const databaseFiles = files.filter(
+      (filename) =>
+        filename === basename ||
+        (filename.startsWith(partitionPrefix) && /^\d+$/.test(filename.slice(partitionPrefix.length))),
+    );
     try {
       await Promise.all(databaseFiles.map((filename) => fs.promises.unlink(path.join(directory, filename))));
     } catch (error) {

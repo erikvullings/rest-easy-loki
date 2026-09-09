@@ -22,6 +22,7 @@ export interface NoAuthorizationConfiguration extends AuthorizationBase {
 
 export interface ApiKeyAuthorizationConfiguration extends AuthorizationBase {
   mode: 'apiKey';
+  /** @deprecated Hostname whitelisting is rejected because the Host header is client-controlled. */
   whitelist?: string[];
   keys: {
     create?: string[];

@@ -38,7 +38,6 @@ export const pep = (
   }
 
   if (authorization.mode === 'apiKey') {
-    const whitelist = authorization.whitelist || [];
     const keys = {
       create: authorization.keys.create || [],
       read: authorization.keys.read || [],
@@ -46,7 +45,7 @@ export const pep = (
       delete: authorization.keys.delete || [],
     };
     return async (ctx: Koa.Context, next: () => Promise<unknown>) => {
-      if (isPublic(ctx) || (whitelist.length > 0 && whitelist.includes(ctx.hostname.toUpperCase()))) {
+      if (isPublic(ctx)) {
         await next();
         return;
       }

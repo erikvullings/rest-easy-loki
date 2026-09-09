@@ -84,6 +84,27 @@ const collectionQuery = (query: Koa.Context['query'], includeProjection: boolean
   };
 };
 
+const applyViewWindow = (result: unknown, query: CollectionQuery): unknown => {
+  if (!Array.isArray(result)) {
+    return result;
+  }
+  const offset = query.offset ?? 0;
+  const end = query.limit === undefined ? undefined : offset + query.limit;
+  const records = result.slice(offset, end);
+  const projection = query.projection;
+  return projection
+    ? records.map((record) =>
+        isObject(record)
+          ? Object.fromEntries(
+              projection
+                .filter((property) => Object.prototype.hasOwnProperty.call(record, property))
+                .map((property) => [property, record[property]]),
+            )
+          : record,
+      )
+    : records;
+};
+
 const withResolver = async (
   operation: () => Promise<Record<string, unknown>>,
   resolve: Resolver | undefined,
@@ -135,11 +156,25 @@ export const createRouter = (
 
   router.get('/api/:collection/view', async (ctx) => {
     const { collection } = ctx.params;
+    const query = collectionQuery(ctx.query, true);
     try {
-      ctx.body = await collections.query(collection, collectionQuery(ctx.query, true));
+      const found = await collections.query(collection, query);
+      if (found.length > 0 || !resolve) {
+        ctx.body = found;
+        return;
+      }
+      const unpaged = await collections.query(collection, {
+        filter: query.filter,
+        orderBy: query.orderBy,
+        limit: 1,
+      });
+      ctx.body =
+        unpaged.length > 0
+          ? found
+          : applyViewWindow(await resolve({ query: ctx.query.q }), query);
     } catch (error) {
       if (resolve && error instanceof CollectionAccessError && error.code === 'COLLECTION_NOT_FOUND') {
-        ctx.body = await resolve({ query: ctx.query.q });
+        ctx.body = applyViewWindow(await resolve({ query: ctx.query.q }), query);
         return;
       }
       throw error;
