@@ -15,8 +15,8 @@ This version has moved from the default `LokiFsAdapter` to the more performing `
 ## Development
 
 ```bash
-npm install # Or pnpm i
-npm start # Will transpile the TypeScript project to JavaScript and run node on every change.
+pnpm install
+pnpm start # Will transpile the TypeScript project to JavaScript and run node on every change.
 ```
 
 ## Usage
@@ -40,21 +40,48 @@ const dbName = process.env.LOKI_DB;
 const cors = (process.env.LOKI_CORS || 'true') === 'true';
 const sizeLimit = process.env.LOKI_SIZE_LIMIT || '25mb';
 
-export const startService = () => {
-  db.startDatabase(dbName, () => {
-    const { api } = createApi({
-      cors,
-      sizeLimit,
-      compression: true, // Compress data using gzip
-      upload: 'upload',  // Allow uploading data to this folder
-      public: 'public'   // Serve all files in this folder, e.g. SPA
-    }) as Koa;
-    api.listen(port);
-    console.log(`Server running on port ${port}.`);
-  });
+export const startService = async () => {
+  await db.startDatabase(dbName);
+  const { api } = createApi({
+    cors,
+    sizeLimit,
+    compression: true, // Compress data using gzip
+    upload: 'upload',  // Allow uploading data to this folder
+    public: 'public'   // Serve all files in this folder, e.g. SPA
+  }) as Koa;
+  api.listen(port);
+  console.log(`Server running on port ${port}.`);
 };
-startService();
+void startService();
 ```
+
+### Database lifecycle
+
+Database startup is awaitable. It reports ready only after the database is loaded, configured collections are created, JSON imports are inserted, and the initial state is persisted. Startup rejects with collection and filename context when loading, parsing, importing, or persistence fails.
+
+```ts
+import { createDatabaseLifecycle } from 'rest-easy-loki';
+
+const database = createDatabaseLifecycle({
+  file: './data/app.db',
+  collections: {
+    users: {
+      unique: ['id'],
+      jsonImport: './users.json'
+    }
+  }
+});
+
+await database.start();
+await database.ready();
+console.log(database.collections());
+
+await database.shutdown(); // Persists pending changes before closing.
+```
+
+Configured collections that already exist are loaded without repeating their original import. Newly configured collections are added to an existing database and imported before readiness. Set `rebuild: true` before the first `start()`, or call `rebuild()` later, to delete the database shell and its structured collection partitions before recreating configured data.
+
+The callback form of `db.startDatabase(file, callback, options)` remains supported, but the returned promise should be awaited so startup failures can be handled. Use `db.shutdownDatabase()` for deterministic final persistence.
 
 ### Configuration
 

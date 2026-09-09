@@ -162,4 +162,7 @@ if (options.help) {
   process.exit(0);
 }
 
-startService(options);
+startService(options).catch((error: unknown) => {
+  console.error(error);
+  process.exitCode = 1;
+});

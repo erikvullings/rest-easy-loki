@@ -1,10 +1,28 @@
 export { config } from './config';
 export { createApi } from './api';
+export { createDatabaseLifecycle } from './database-lifecycle';
+export type {
+  DatabaseLifecycle,
+  DatabaseLifecycleOptions,
+  DatabaseLifecycleState,
+} from './database-lifecycle';
 export * from './models';
 import Router from 'koa-router';
 export { Router };
 
-import { all, collections, createCollection, del, findOne, get, post, startDatabase, update } from './database';
+import {
+  all,
+  collections,
+  createCollection,
+  del,
+  findOne,
+  get,
+  post,
+  rebuildDatabase,
+  shutdownDatabase,
+  startDatabase,
+  update,
+} from './database';
 
 export const db = {
   all,
@@ -14,6 +32,8 @@ export const db = {
   get,
   findOne,
   post,
+  rebuildDatabase,
+  shutdownDatabase,
   startDatabase,
   update,
 };

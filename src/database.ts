@@ -1,133 +1,68 @@
-import fs from 'fs';
-import loki, { Collection } from 'lokijs';
+import { LokiDatabaseLifecycle } from './database-lifecycle';
+import { config } from './config';
 import { ILokiConfiguration } from './models';
 import { sortByDateDesc } from './utils';
-import lfsa from 'lokijs/src/loki-fs-structured-adapter';
-import { config } from './config';
 
-let db: loki;
+let lifecycle: LokiDatabaseLifecycle | undefined;
 
-const collectionStore = {} as { [key: string]: Collection };
-
-const importJSON = (collectionName: string, filename: string) => {
-  if (!fs.existsSync(filename)) return;
-  fs.readFile(filename, (err, data) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    try {
-      const json = JSON.parse(data.toString());
-      const collection = db.getCollection(collectionName);
-      if (json instanceof Array) {
-        collection.insert(json);
-        console.log(
-          `Finished reading ${filename}, number of entries in collection '${collection.name}': ${collection.count()}`,
-        );
-      } else {
-        console.warn(`JSON file is not an array! Ignoring ${filename}.`);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  });
-};
-
-const databaseInitialize = (options?: ILokiConfiguration) => {
-  if (db.collections && db.collections.length > 0) {
-    db.collections.forEach((c) => {
-      collectionStore[c.name] = db.getCollection(c.name);
-    });
-  } else if (options && options.collections && typeof options.collections === 'object') {
-    const { collections } = options;
-    for (const collectionName of Object.keys(collections)) {
-      const collection = collections[collectionName];
-      collectionStore[collectionName] = db.addCollection(collectionName, collection);
-      collection.jsonImport && importJSON(collectionName, collection.jsonImport);
-    }
+const database = () => {
+  if (!lifecycle || lifecycle.state !== 'ready') {
+    throw new Error('Database is not ready. Await startDatabase() before accessing collections.');
   }
-  // kick off any program logic or start listening to external events
-  runProgramLogic();
+  return lifecycle;
 };
 
-const runProgramLogic = () =>
-  Object.keys(collectionStore)
-    .map((name) => collectionStore[name])
-    .map((collection) => {
-      console.log(`Number of entries in collection '${collection.name}': ${collection.count()}`);
-    });
-
-export const startDatabase = (file = 'rest_easy_loki.db', cb?: () => void, options?: ILokiConfiguration) => {
-  const autoloadCallback = cb
-    ? () => {
-        databaseInitialize(options);
-        cb();
-      }
-    : () => databaseInitialize(options);
-
-  db = new loki(file, {
-    // Since our LokiFsStructuredAdapter is partitioned, the default 'rest_easy_loki.db'
-    // file will actually contain only the loki database shell and each of the collections
-    // will be saved into independent 'partition' files with numeric suffix.
-    adapter: new lfsa(),
-    autoload: true,
-    autoloadCallback,
-    autosave: true,
-    throttledSaves: options ? options.throttledSaves : true,
-  } as Partial<LokiConfigOptions>);
+export const startDatabase = async (
+  file = 'rest_easy_loki.db',
+  callback?: () => void,
+  options?: ILokiConfiguration,
+): Promise<void> => {
+  lifecycle = new LokiDatabaseLifecycle({ ...options, file });
+  await lifecycle.start();
+  callback?.();
 };
 
-// Since autosave timer keeps program from exiting, we exit this program by ctrl-c.
-// (optionally) For best practice, lets use the standard exit events to force a db flush to disk
-//    if autosave timer has not had a fired yet (if exiting before 4 seconds).
-process.on('SIGINT', () => {
-  console.log('flushing database...');
-  db.close();
-  process.exit(0);
-});
+export const shutdownDatabase = async (): Promise<void> => {
+  await lifecycle?.shutdown();
+};
+
+export const rebuildDatabase = async (): Promise<void> => {
+  if (!lifecycle) {
+    throw new Error('Database has not been started.');
+  }
+  await lifecycle.rebuild();
+};
 
 export const createCollection = (collectionName: string, indices?: string[]) => {
-  collectionStore[collectionName] = db.addCollection(collectionName, { indices });
+  database().createCollection(collectionName, { indices });
 };
 
 export const post = (collectionName: string, item: unknown) => {
-  if (!collectionStore.hasOwnProperty(collectionName)) {
-    createCollection(collectionName);
-  }
-  return collectionStore[collectionName].insert(item);
+  const active = database();
+  const collection = active.collection(collectionName) || active.createCollection(collectionName);
+  return collection.insert(item);
 };
 
-export const collections = () =>
-  Object.keys(collectionStore)
-    .map((key) => collectionStore[key])
-    .map((col) => ({ name: col.name, entries: col.count() }));
+export const collections = () => database().collections();
 
 export const del = (collectionName: string, id: number) => {
-  if (!collectionStore.hasOwnProperty(collectionName)) {
-    return false;
-  }
-  // const item = collectionStore[collectionName].get(id);
-  // if (item) {
-  return collectionStore[collectionName].remove(id);
-  // }
-  // return false;
+  const collection = database().collection(collectionName);
+  return collection ? collection.remove(id) : false;
 };
 
 export const update = (collectionName: string, item: any) => {
-  if (!collectionStore.hasOwnProperty(collectionName)) {
-    return false;
-  }
-  return collectionStore[collectionName].update(item);
+  const collection = database().collection(collectionName);
+  return collection ? collection.update(item) : false;
 };
 
 export const get = (collectionName: string, query: string | number | { [key: string]: any }, by?: string) => {
   if (config.debug) {
     console.log('Query:', query);
   }
-  if (!collectionStore.hasOwnProperty(collectionName)) {
+  const collection = database().collection(collectionName);
+  if (!collection) {
     return;
   }
-  const collection = collectionStore[collectionName];
   if (by) {
     return collection.by(by, query);
   }
@@ -135,10 +70,10 @@ export const get = (collectionName: string, query: string | number | { [key: str
     return collection.get(query);
   }
   if (typeof query === 'string') {
-    const q = query
+    const parsed = query
       ? (JSON.parse(query) as { [prop: string]: string | number | { [ops: string]: string | number } })
       : undefined;
-    return q ? collection.find(q) : undefined;
+    return parsed ? collection.find(parsed) : undefined;
   }
   return collection.find(query);
 };
@@ -147,32 +82,34 @@ export const findOne = (collectionName: string, query: string | number | { [key:
   if (config.debug) {
     console.log('Query:', query);
   }
-  if (!collectionStore.hasOwnProperty(collectionName)) {
+  const collection = database().collection(collectionName);
+  if (!collection) {
     return;
   }
-  const collection = collectionStore[collectionName];
   if (typeof query === 'number') {
     return collection.get(query);
   }
   if (typeof query === 'string') {
-    const q = query
+    const parsed = query
       ? (JSON.parse(query) as { [prop: string]: string | number | { [ops: string]: string | number } })
       : undefined;
-    return q ? collection.findOne(q) : undefined;
+    return parsed ? collection.findOne(parsed) : undefined;
   }
   return collection.findOne(query);
 };
 
 export const all = (collectionName: string, query?: string) => {
-  if (!collectionStore.hasOwnProperty(collectionName)) {
+  const collection = database().collection(collectionName);
+  if (!collection) {
     return;
   }
-  const collection = collectionStore[collectionName];
   if (config.debug) {
     console.log('Query:', query);
   }
-  const q = query
+  const parsed = query
     ? (JSON.parse(query) as { [prop: string]: string | number | { [ops: string]: string | number } })
     : undefined;
-  return q ? collection.chain().find(q).sort(sortByDateDesc).data() : collection.chain().sort(sortByDateDesc).data();
+  return parsed
+    ? collection.chain().find(parsed).sort(sortByDateDesc).data()
+    : collection.chain().sort(sortByDateDesc).data();
 };

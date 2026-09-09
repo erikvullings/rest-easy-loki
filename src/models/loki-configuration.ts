@@ -17,10 +17,10 @@ export interface CollectionOptions<E> {
   indices: keyof E | (keyof E)[];
 }
 
-export interface ExtendedCollectionOptions<E> extends CollectionOptions<E> {
+export type ExtendedCollectionOptions<E> = Partial<CollectionOptions<E>> & {
   /** JSON file to import: expects a JSON array which will be inserted into the collection */
   jsonImport?: string;
-}
+};
 
 export interface ILokiConfiguration<T = {}> {
   throttledSaves?: boolean;

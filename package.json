@@ -14,6 +14,7 @@
     "build": "tsc -b",
     "watch": "tsc -w",
     "start": "tsc-watch --onSuccess \"node ./dist/cli.js --upload upload\" --onFailure \"echo Beep! Compilation Failed\" --compiler typescript/bin/tsc",
+    "test": "pnpm run clean && pnpm run build && node --test test/*.test.js",
     "dry-run": "npm publish --dry-run",
     "patch-release": "npm run clean && npm run build && npm version patch --force -m \"Patch release\" && npm publish && git push --follow-tags",
     "minor-release": "npm run clean && npm run build && npm version minor --force -m \"Minor release\" && npm publish && git push --follow-tags",
