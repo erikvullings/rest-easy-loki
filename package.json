@@ -1,6 +1,6 @@
 {
   "name": "rest-easy-loki",
-  "version": "1.6.4",
+  "version": "2.0.0-rc.1",
   "packageManager": "pnpm@12.3.4",
   "description": "A REST interface for lokijs supporting CRUD operations and automatic creation of new collections.",
   "main": "./dist/index.js",

@@ -2,6 +2,9 @@
 
 A simple REST interface for the in-memory database, [lokijs](https://techfort.github.io/LokiJS/), featuring:
 
+> Upgrading from 1.x? Follow the [2.0 migration guide](MIGRATION.md), especially
+> the authorization changes, before updating downstream applications.
+
 - Automatic creation of collections, including CRUD actions, pagination and MongoDB-like queries.
 - Explicit no-auth, API-key, or JWT authorization with configurable public routes.
 - Statically sharing the public folder
